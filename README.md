@@ -18,6 +18,8 @@ FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入
     |               |                     |          |<------------>| Host PC
     |        usb_dn |---------------------| USB_D-   |              |
     |               |                     |          |              |
+    |           GND |---------------------| GND      |              |
+    |               |                     |          |              |
     -----------------                     ------------              ----------
           FPGA                           USB Connector                Host PC
 
@@ -32,45 +34,42 @@ FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入
 | RTL/usbfs_core/*.sv     | 实现了一个 USB Device 控制器（Full Speed）                   |
 | RTL/usb_cdc_top.sv      | 调用 USB-device 控制器，实现 CDC 设备，用于虚拟串口通信（使用方法详见代码注释） |
 | RTL/usb_hid_top.sv      | 调用 USB-device 控制器，实现 HID 键盘，用于模拟键盘输入（使用方法详见代码注释） |
-| RTL/fpga_top_example.sv | FPGA顶层。调用范例，展示了如何用 usb_cdc_top.sv 实现一个回环的虚拟串口（通过minicom/超级终端/串口助手发送的字符会回传）。以及如何用 usb_hid_top.sv 实现一个不断按下的键盘（每2秒按下一个键）。（使用方法详见代码注释） |
+| RTL/fpga_top_example.sv | FPGA顶层。是调用范例。展示了如何用 usb_cdc_top.sv 实现一个回环的虚拟串口（通过minicom/超级终端/串口助手发送的字符会回传）。以及如何用 usb_hid_top.sv 实现一个不断按下的键盘。已在 Windows 和 Linux 上测试成功。使用方法详见代码注释。 |
 
-> 已在 Windows 和 Linux 上测试成功。
->
-> 所有代码都是 SystemVerilog 行为级实现，支持任意 FPGA 平台。
->
-> 除了 fpga_top_example.sv 里的 PLL 是仅限于 Altera Cyclone IV E 的原语（PLL用来生成 60MHz 时钟）。如果你用的不是 Altera Cyclone IV E，请使用其它的 IP 核或原语来替换。
+* 所有代码都是 SystemVerilog 行为级实现，支持任意 FPGA 平台。
+  * 除了 fpga_top_example.sv 里的 altpll module 是仅限于 Cyclone IV E 的原语，它用来生成 60MHz 时钟。如果你用的不是 Altera Cyclone IV E，请使用其它的 IP 核（例如Xilinx 的 clock wizard）或原语来替换。
 
 
 
 usb_cdc_top.sv 和 usb_hid_top.sv 中，我提供了简洁的接口供调用，如下：
 
-    module usb_hid_top (
-        input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will plug when reset)
-        input  wire        clk,           // 60MHz is required
-        // USB signals
-        output wire        usb_dp_pull,   // connect to USB D+ by an 1.5k resistor
-        inout              usb_dp,        // USB D+
-        inout              usb_dn,        // USB D-
-        // HID keyboard press signal
-        input  wire [15:0] key_value,     // Indicates which key to press, NOT ASCII code! see https://www.usb.org/sites/default/files/hut1_21_0.pdf section 10.
-        input  wire        key_request    // when key_request=1 pulses, a key is pressed.
-    );
+### module usb_hid_top
 
-    module usb_cdc_top (
-        input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset)
-        input  wire        clk,           // 60MHz is required
-        // USB signals
-        output wire        usb_dp_pull,   // connect to USB D+ by an 1.5k resistor
-        inout              usb_dp,        // USB D+
-        inout              usb_dn,        // USB D-
-        // CDC receive data (host-to-device)
-        output wire [ 7:0] recv_data,     // received data byte
-        output wire        recv_valid,    // when recv_valid=1 pulses, a data byte is received on recv_data
-        // CDC send data (device-to-host)
-        input  wire [ 7:0] send_data,     // data byte to send
-        input  wire        send_valid,    // when device want to send a data byte, assert send_valid=1. the data byte will be sent successfully when (send_valid=1 && send_ready=1).
-        output wire        send_ready     // send_ready handshakes with send_valid. send_ready=1 indicates send-buffer is not full and will accept the byte on send_data. send_ready=0 indicates send-buffer is full and cannot accept a new byte. 
-    );
+    input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will plug when reset)
+    input  wire        clk,           // 60MHz is required
+    // USB signals
+    output wire        usb_dp_pull,   // connect to USB D+ by an 1.5k resistor
+    inout              usb_dp,        // USB D+
+    inout              usb_dn,        // USB D-
+    // HID keyboard press signal
+    input  wire [15:0] key_value,     // Indicates which key to press, NOT ASCII code! see https://www.usb.org/sites/default/files/hut1_21_0.pdf section 10.
+    input  wire        key_request    // when key_request=1 pulses, a key is pressed.
+
+### module usb_cdc_top
+
+    input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset)
+    input  wire        clk,           // 60MHz is required
+    // USB signals
+    output wire        usb_dp_pull,   // connect to USB D+ by an 1.5k resistor
+    inout              usb_dp,        // USB D+
+    inout              usb_dn,        // USB D-
+    // CDC receive data (host-to-device)
+    output wire [ 7:0] recv_data,     // received data byte
+    output wire        recv_valid,    // when recv_valid=1 pulses, a data byte is received on recv_data
+    // CDC send data (device-to-host)
+    input  wire [ 7:0] send_data,     // data byte to send
+    input  wire        send_valid,    // when device want to send a data byte, set send_valid=1. the data byte will be sent successfully when (send_valid=1 && send_ready=1).
+    output wire        send_ready     // send_ready handshakes with send_valid. send_ready=1 indicates send-buffer is not full and will accept the byte on send_data. send_ready=0 indicates send-buffer is full and cannot accept a new byte. 
 
 
 

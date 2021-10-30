@@ -12,7 +12,7 @@ module usb_cdc_top (
     output wire        recv_valid,    // when recv_valid=1 pulses, a data byte is received on recv_data
     // CDC send data (device-to-host)
     input  wire [ 7:0] send_data,     // data byte to send
-    input  wire        send_valid,    // when device want to send a data byte, assert send_valid=1. the data byte will be sent successfully when (send_valid=1 && send_ready=1).
+    input  wire        send_valid,    // when device want to send a data byte, set send_valid=1. the data byte will be sent successfully when (send_valid=1 && send_ready=1).
     output wire        send_ready     // send_ready handshakes with send_valid. send_ready=1 indicates send-buffer is not full and will accept the byte on send_data. send_ready=0 indicates send-buffer is full and cannot accept a new byte. 
 );
 
