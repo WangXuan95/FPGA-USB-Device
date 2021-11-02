@@ -14,9 +14,9 @@ FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入
     |               |      | | 1.5k resistor is to pull-up or pull-down USB D+
     |               |      |_|            ____________              __________
     |               |       |             |          |              |
-    |        usb_dp |-------^-------------| USB_D+   |   USB cable  |
-    |               |                     |          |<------------>| Host PC
-    |        usb_dn |---------------------| USB_D-   |              |
+    |        usb_dp |-------^-------------| USB_D+   |              |
+    |               |                     |          |  USB cable   |
+    |        usb_dn |---------------------| USB_D-   |<------------>| Host PC
     |               |                     |          |              |
     |           GND |---------------------| GND      |              |
     |               |                     |          |              |
@@ -34,7 +34,7 @@ FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入
 | RTL/usbfs_core/*.sv     | 实现了一个 USB Device 控制器（Full Speed）                   |
 | RTL/usb_cdc_top.sv      | 调用 USB-device 控制器，实现 CDC 设备，用于虚拟串口通信（使用方法详见代码注释） |
 | RTL/usb_hid_top.sv      | 调用 USB-device 控制器，实现 HID 键盘，用于模拟键盘输入（使用方法详见代码注释） |
-| RTL/fpga_top_example.sv | FPGA顶层。是调用范例。展示了如何用 usb_cdc_top.sv 实现一个回环的虚拟串口（通过minicom/超级终端/串口助手发送的字符会回传）。以及如何用 usb_hid_top.sv 实现一个不断按下的键盘。已在 Windows 和 Linux 上测试成功。使用方法详见代码注释。 |
+| RTL/fpga_top_example.sv | FPGA顶层。是调用范例。展示了如何用 usb_cdc_top.sv 实现一个回环的虚拟串口（通过minicom/超级终端/串口助手发送的字符会回传）。以及如何用 usb_hid_top.sv 实现一个不断按下的键盘。已在 Windows 和 Linux 上成功识别和工作（操作系统自带驱动程序，无需额外安装）。 |
 
 * 所有代码都是 SystemVerilog 行为级实现，支持任意 FPGA 平台。
   * 除了 fpga_top_example.sv 里的 altpll module 是仅限于 Cyclone IV E 的原语，它用来生成 60MHz 时钟。如果你用的不是 Altera Cyclone IV E，请使用其它的 IP 核（例如Xilinx 的 clock wizard）或原语来替换。
@@ -45,7 +45,7 @@ usb_cdc_top.sv 和 usb_hid_top.sv 中，我提供了简洁的接口供调用，�
 
 ### module usb_hid_top
 
-    input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will plug when reset)
+    input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset), normally set to 1
     input  wire        clk,           // 60MHz is required
     // USB signals
     output wire        usb_dp_pull,   // connect to USB D+ by an 1.5k resistor
@@ -57,7 +57,7 @@ usb_cdc_top.sv 和 usb_hid_top.sv 中，我提供了简洁的接口供调用，�
 
 ### module usb_cdc_top
 
-    input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset)
+    input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset), normally set to 1
     input  wire        clk,           // 60MHz is required
     // USB signals
     output wire        usb_dp_pull,   // connect to USB D+ by an 1.5k resistor

@@ -1,7 +1,7 @@
 `timescale 1ns/1ns
 
 module usb_hid_top (
-    input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will plug when reset)
+    input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset), normally set to 1
     input  wire        clk,           // 60MHz is required
     // USB signals
     output wire        usb_dp_pull,   // connect to USB D+ by an 1.5k resistor
