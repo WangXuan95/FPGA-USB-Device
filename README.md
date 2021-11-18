@@ -1,6 +1,6 @@
 FPGA USB-device
 ===========================
-FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入) 设备。
+FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入) 设备。已在 Windows 和 Linux 上成功识别和工作。
 
 
 
