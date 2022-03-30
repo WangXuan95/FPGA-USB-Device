@@ -1,4 +1,10 @@
-`timescale 1ns/1ns
+
+//--------------------------------------------------------------------------------------------------------
+// Module  : fpga_top_example
+// Type    : synthesizable, fpga top
+// Standard: SystemVerilog 2005 (IEEE1800-2005)
+// Function: example for usb_cdc_top or usb_hid_top
+//--------------------------------------------------------------------------------------------------------
 
 module fpga_top_example (
     // clock and reset

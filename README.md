@@ -1,3 +1,5 @@
+![语言](https://img.shields.io/badge/语言-systemverilog_(IEEE1800_2005)-CAD09D.svg) ![部署](https://img.shields.io/badge/部署-quartus-blue.svg) ![部署](https://img.shields.io/badge/部署-vivado-FF1010.svg)
+
 FPGA USB-device
 ===========================
 FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入) 设备。已在 Windows 和 Linux 上成功识别和工作。
@@ -36,8 +38,7 @@ FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入
 | RTL/usb_hid_top.sv      | 调用 USB-device 控制器，实现 HID 键盘，用于模拟键盘输入（使用方法详见代码注释） |
 | RTL/fpga_top_example.sv | FPGA顶层。是调用范例。展示了如何用 usb_cdc_top.sv 实现一个回环的虚拟串口（通过minicom/超级终端/串口助手发送的字符会回传）。以及如何用 usb_hid_top.sv 实现一个不断按下的键盘。已在 Windows 和 Linux 上成功识别和工作（操作系统自带驱动程序，无需额外安装）。 |
 
-* 所有代码都是 SystemVerilog 行为级实现，支持任意 FPGA 平台。
-  * 除了 fpga_top_example.sv 里的 altpll module 是仅限于 Cyclone IV E 的原语，它用来生成 60MHz 时钟。如果你用的不是 Altera Cyclone IV E，请使用其它的 IP 核（例如Xilinx 的 clock wizard）或原语来替换。
+注意：所有代码都是 SystemVerilog 行为级实现，支持任意 FPGA 平台。除了 fpga_top_example.sv 里的 altpll module 是仅限于 Cyclone IV E 的原语，它用来生成 60MHz 时钟。如果你用的不是 Altera Cyclone IV E，请使用其它的 IP 核（例如Xilinx 的 clock wizard）或原语来替换。
 
 
 

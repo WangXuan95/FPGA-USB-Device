@@ -1,9 +1,12 @@
-`timescale 1ns/1ns
 
-// module usbfs_packet_rx
-//    USB Full Speed (12Mbps) device packet receiver and parser
-// function:
-//    extract PID, ADDR, and data bytes from RX packet, check and report CRC5 and CRC16 status
+//--------------------------------------------------------------------------------------------------------
+// Module  : usbfs_packet_rx
+// Type    : synthesizable, IP's sub module
+// Standard: SystemVerilog 2005 (IEEE1800-2005)
+// Function: USB Full Speed (12Mbps) device packet receiver and parser
+//           extract PID, ADDR, and data bytes from RX packet, check and report CRC5 and CRC16 status
+//--------------------------------------------------------------------------------------------------------
+
 module usbfs_packet_rx (
     input  wire        rstn,
     input  wire        clk,

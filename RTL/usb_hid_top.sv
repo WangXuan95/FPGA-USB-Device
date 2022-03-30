@@ -1,4 +1,10 @@
-`timescale 1ns/1ns
+
+//--------------------------------------------------------------------------------------------------------
+// Module  : usb_hid_top
+// Type    : synthesizable, IP's top
+// Standard: SystemVerilog 2005 (IEEE1800-2005)
+// Function: A USB Full Speed (12Mbps) device, act as a USB HID keyboard
+//--------------------------------------------------------------------------------------------------------
 
 module usb_hid_top (
     input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset), normally set to 1
@@ -11,6 +17,7 @@ module usb_hid_top (
     input  wire [15:0] key_value,     // Indicates which key to press, NOT ASCII code! see https://www.usb.org/sites/default/files/hut1_21_0.pdf section 10.
     input  wire        key_request    // when key_request=1 pulses, a key is pressed.
 );
+
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 // descriptor ROM and ROM-read logic

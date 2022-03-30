@@ -1,4 +1,10 @@
-`timescale 1ns/1ns
+
+//--------------------------------------------------------------------------------------------------------
+// Module  : usbfs_core_top
+// Type    : synthesizable, IP's top
+// Standard: SystemVerilog 2005 (IEEE1800-2005)
+// Function: A USB Full Speed (12Mbps) device controller
+//--------------------------------------------------------------------------------------------------------
 
 module usbfs_core_top #(
     parameter [9:0] ENDP_00_MAXPKTSIZE = 10'd32,

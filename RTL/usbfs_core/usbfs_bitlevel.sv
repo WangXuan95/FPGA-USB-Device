@@ -1,11 +1,14 @@
-`timescale 1ns/1ns
 
-// module: usbfs_bitlevel
-//    USB Full Speed (12Mbps) device bit level transceiver
-// function:
-//    SYNC detection, NRZI decode, bit de-stuff
-//    send SYNC, TX bit stuff, NRZI encode
-//    packet sending can only be active after packet receiving, so this module is only for device (rather than host and hub)
+//--------------------------------------------------------------------------------------------------------
+// Module  : usbfs_bitlevel
+// Type    : synthesizable, IP's sub module
+// Standard: SystemVerilog 2005 (IEEE1800-2005)
+// Function: USB Full Speed (12Mbps) device bit level transceiver, include:
+//             SYNC detection, NRZI decode, bit de-stuff
+//             send SYNC, TX bit stuff, NRZI encode
+//             packet sending can only be active after packet receiving, so this module is only for device (rather than host and hub)
+//--------------------------------------------------------------------------------------------------------
+
 module usbfs_bitlevel (
     input  wire        rstn,          // active-low reset, reset when rstn=0 (USB-unplug when reset)
     input  wire        clk,           // require 60MHz

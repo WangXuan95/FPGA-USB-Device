@@ -1,9 +1,12 @@
-`timescale 1ns/1ns
 
-// module usbfs_packet_tx
-//    USB Full Speed (12Mbps) device packet sender
-// function:
-//    pack PID, ADDR, data bytes, and CRC5 or CRC16 to TX packet
+//--------------------------------------------------------------------------------------------------------
+// Module  : usbfs_packet_tx
+// Type    : synthesizable, IP's sub module
+// Standard: SystemVerilog 2005 (IEEE1800-2005)
+// Function: USB Full Speed (12Mbps) device packet sender
+//           pack PID, ADDR, data bytes, and CRC5 or CRC16 to TX packet
+//--------------------------------------------------------------------------------------------------------
+
 module usbfs_packet_tx (
     input  wire        rstn,
     input  wire        clk,

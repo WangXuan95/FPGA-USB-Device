@@ -1,4 +1,10 @@
-`timescale 1ns/1ns
+
+//--------------------------------------------------------------------------------------------------------
+// Module  : usb_cdc_top
+// Type    : synthesizable, IP's top
+// Standard: SystemVerilog 2005 (IEEE1800-2005)
+// Function: A USB Full Speed (12Mbps) device, act as a USB CDC device (USB UART device)
+//--------------------------------------------------------------------------------------------------------
 
 module usb_cdc_top (
     input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset), normally set to 1
@@ -15,6 +21,7 @@ module usb_cdc_top (
     input  wire        send_valid,    // when device want to send a data byte, set send_valid=1. the data byte will be sent successfully when (send_valid=1 && send_ready=1).
     output wire        send_ready     // send_ready handshakes with send_valid. send_ready=1 indicates send-buffer is not full and will accept the byte on send_data. send_ready=0 indicates send-buffer is full and cannot accept a new byte. 
 );
+
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 // descriptor ROM and ROM-read logic
@@ -61,18 +68,55 @@ always @ (posedge clk) desc_data <= descriptor_rom[desc_addr];
 //-------------------------------------------------------------------------------------------------------------------------------------
 wire        usb_rstn;
 wire [ 7:0] in_data;
-wire        in_valid;
+reg         in_valid = '0;
 wire        in_ready;
-fifo in_data_buffer (
-    .rstn            ( usb_rstn         ),
-    .clk             ( clk              ),
-    .itvalid         ( send_valid       ),
-    .itready         ( send_ready       ),
-    .itdata          ( send_data        ),
-    .otvalid         ( in_valid         ),
-    .otready         ( in_ready         ),
-    .otdata          ( in_data          )
-);
+
+localparam   ASIZE = 10;
+
+reg  [8-1:0] buffer [1<<ASIZE];  // may automatically synthesize to BRAM
+
+logic [ASIZE:0] wptr, rptr;
+
+wire full  = wptr == {~rptr[ASIZE], rptr[ASIZE-1:0]};
+wire empty = wptr == rptr;
+
+assign send_ready = ~full;
+
+always @ (posedge clk or negedge usb_rstn)
+    if(~usb_rstn) begin
+        wptr <= '0;
+    end else begin
+        if(send_valid & ~full)
+            wptr <= wptr + (1+ASIZE)'(1);
+    end
+
+always @ (posedge clk)
+    if(send_valid & ~full)
+        buffer[wptr[ASIZE-1:0]] <= send_data;
+
+wire        rdready = ~in_valid | in_ready;
+reg         rdack;
+reg [8-1:0] rddata;
+reg [8-1:0] keepdata;
+assign in_data = rdack ? rddata : keepdata;
+
+always @ (posedge clk or negedge usb_rstn)
+    if(~usb_rstn) begin
+        in_valid <= 1'b0;
+        rdack <= 1'b0;
+        rptr <= '0;
+        keepdata <= '0;
+    end else begin
+        in_valid <= ~empty | ~rdready;
+        rdack <= ~empty & rdready;
+        if(~empty & rdready)
+            rptr <= rptr + (1+ASIZE)'(1);
+        if(rdack)
+            keepdata <= rddata;
+    end
+
+always @ (posedge clk)
+    rddata <= buffer[rptr[ASIZE-1:0]];
 
 
 //-------------------------------------------------------------------------------------------------------------------------------------
@@ -95,80 +139,5 @@ usbfs_core_top  #(
     .in_valid        ( in_valid         ),
     .in_ready        ( in_ready         )
 );
-
-endmodule
-
-
-
-
-
-
-
-
-
-
-
-
-//-------------------------------------------------------------------------------------------------------------------------------------
-// a generic sync fifo
-//-------------------------------------------------------------------------------------------------------------------------------------
-module fifo #(
-    parameter   DSIZE = 8,
-    parameter   ASIZE = 10
-)(
-    input  wire             rstn,
-    input  wire             clk,
-    input  wire             itvalid,
-    output wire             itready,
-    input  wire [DSIZE-1:0] itdata,
-    output reg              otvalid,
-    input  wire             otready,
-    output wire [DSIZE-1:0] otdata
-);
-
-reg  [DSIZE-1:0] buffer [1<<ASIZE];  // may automatically synthesize to BRAM
-
-logic [ASIZE:0] wptr, rptr;
-
-wire full  = wptr == {~rptr[ASIZE], rptr[ASIZE-1:0]};
-wire empty = wptr == rptr;
-
-assign itready = rstn & ~full;
-
-always @ (posedge clk or negedge rstn)
-    if(~rstn) begin
-        wptr <= '0;
-    end else begin
-        if(itvalid & ~full)
-            wptr <= wptr + (1+ASIZE)'(1);
-    end
-
-always @ (posedge clk)
-    if(itvalid & ~full)
-        buffer[wptr[ASIZE-1:0]] <= itdata;
-
-wire            rdready = ~otvalid | otready;
-reg             rdack;
-reg [DSIZE-1:0] rddata;
-reg [DSIZE-1:0] keepdata;
-assign otdata = rdack ? rddata : keepdata;
-
-always @ (posedge clk or negedge rstn)
-    if(~rstn) begin
-        otvalid <= 1'b0;
-        rdack <= 1'b0;
-        rptr <= '0;
-        keepdata <= '0;
-    end else begin
-        otvalid <= ~empty | ~rdready;
-        rdack <= ~empty & rdready;
-        if(~empty & rdready)
-            rptr <= rptr + (1+ASIZE)'(1);
-        if(rdack)
-            keepdata <= rddata;
-    end
-
-always @ (posedge clk)
-    rddata <= buffer[rptr[ASIZE-1:0]];
 
 endmodule
