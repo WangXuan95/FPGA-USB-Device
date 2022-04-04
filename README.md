@@ -33,7 +33,7 @@ FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入
 
 为了进行如上连接，除了画 PCB 外，更快捷的方式是用 USB Connector （USB 母座）进行飞线连接，建议用 USB TypeB（俗称方口）母座，因为引脚间距大，便于焊接（如**图1**）。你需要把方口母座下方的针脚焊接到杜邦线上（别忘了焊接那个1.5kΩ 的电阻）；然后把杜邦线插在 FPGA 开发板上。
 
-| ![USBTypeB](./figures/USB_typeb.png) |
+| ![USBTypeB](./figures/usb_typeb.png) |
 | :----------------------------------: |
 |      **图1**：USB 方口母座与线       |
 
@@ -91,7 +91,7 @@ usb_cdc_top.sv 和 usb_hid_top.sv 中，我提供了简洁的调用接口，如�
 
 RTL/usbfs_core/usbfs_core_top.sv 实现了 USB-Transfer 层往下的完整协议。留出了 descriptor ROM 读接口、Endpoint 0x01 receive 接口和 Endpoint 0x81 send 接口，可以用来开发其它 USB-device。usb_cdc_top.sv 和 usb_hid_top.sv 皆是调用 usbfs_core_top.sv 来实现的。
 
-例如，你可以仿照 usb_hid_top.sv ，修改描述符，并实现自定义的 send & receive 行为来实现其它 USB-device 。
+例如，你可以仿照 usb_hid_top.sv ，修改 descriptor（描述符），并实现自定义的 send & receive 行为来实现其它 USB-device 。
 
 我打算继续用它实现 USB Mass Storage Class (U盘)  和 USB Video Class (UVC 摄像头)。
 
