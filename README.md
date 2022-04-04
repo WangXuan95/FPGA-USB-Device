@@ -2,11 +2,12 @@
 
 FPGA USB-device
 ===========================
-FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入) 设备。已在 Windows 和 Linux 上成功识别和工作。
+FPGA USB-device 控制器。可实现 CDC (虚拟串口)， HID (键盘输入)， Audio(音频输出) 设备。已在 Windows 和 Linux 上成功识别和工作。
 
 
 
 # 电路连接
+### 原理图
 
     _________________
     |               |
@@ -31,6 +32,7 @@ FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入
 - `usb_dp` 接 `USB_D+`
 - `usb_dp_pull` 要通过 1.5kΩ 的电阻接  `USB_D+` 
 
+### 飞线连接
 为了进行如上连接，除了画 PCB 外，更快捷的方式是用 USB Connector （USB 母座）进行飞线连接，建议用 USB TypeB（俗称方口）母座，因为引脚间距大，便于焊接（如**图1**）。你需要把方口母座下方的针脚焊接到杜邦线上（别忘了焊接那个1.5kΩ 的电阻）；然后把杜邦线插在 FPGA 开发板上。
 
 | ![USBTypeB](./figures/usb_typeb.png) |
@@ -39,7 +41,10 @@ FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入
 
 >  **注意**：USB中有一根线是 VBUS ，是 Host 提供给 Device 的 5V 电源，在这里不需要连接。
 
+### PCB连接
+制作专用于接口转换的PCB，具有最好的信号完整性表现。虽然 USB FS 仅有12Mbps速率，但是依然有必要保证`USB_D-`和`USB_D+`的等长、等间距布线，并且不要靠近时钟或其他高速信号，做包地处理是最理想的设计。  
 
+>  **注意**：虽然 USB FS 并不需要严格的阻抗设计，但是依然要使用合适的线宽、间距。  
 
 # 代码
 

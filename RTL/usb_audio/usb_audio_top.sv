@@ -14,12 +14,10 @@ module usb_audio_top (
     inout              usb_dp,        // USB D+
     inout              usb_dn,        // USB D-
     // Audio 48kHz 16bit 2 channel
-    output reg [15:0]  audio_lch,     // connect to Audio DAC left channel
-    output reg [15:0]  audio_rch      // connect to Audio DAC right channel
+    output reg [15:0]  audio_L_ch,    // connect to Audio DAC left channel
+    output reg [15:0]  audio_R_ch     // connect to Audio DAC right channel
 );
 
-wire [7:0]recv_data;
-wire recv_valid;
 //-------------------------------------------------------------------------------------------------------------------------------------
 // descriptor ROM and ROM-read logic
 //-------------------------------------------------------------------------------------------------------------------------------------
@@ -69,6 +67,8 @@ always @ (posedge clk) desc_data <= descriptor_rom[desc_addr];
 // USB Audio PCM (for host-to-device), 双缓冲空间double bufsize[15:0] =2 * 48000Hz * 0.001s * 2(Ch) * 2(16b/8b) =2*192B =2*96(16b)
 //-------------------------------------------------------------------------------------------------------------------------------------
 `define buf_len 96
+wire [7:0]recv_data;
+wire recv_valid;
 reg [10:0]clk48_cnt;//clk div
 reg audio_en;//48kHz频率输出音频
 reg [6:0]audio_index;//音频索引
@@ -150,8 +150,8 @@ always @ (posedge clk or negedge usb_rstn)
 //audio output
 always @ (posedge clk or negedge usb_rstn) 
     if(~usb_rstn) begin
-        audio_lch<= '0;
-        audio_rch<= '0;
+        audio_L_ch<= '0;
+        audio_R_ch<= '0;
         audio_index<= '0;
     end else begin
         if(ppsta_r^ppsta) begin
@@ -160,11 +160,11 @@ always @ (posedge clk or negedge usb_rstn)
             if(audio_en) begin  // 48kHz speed output
                 audio_index<= audio_index+2;
                 if(ppsta) begin  // buf0
-                    audio_lch<= audio_buf0[audio_index];
-                    audio_rch<= audio_buf0[audio_index+1];
+                    audio_L_ch<= audio_buf0[audio_index];
+                    audio_R_ch<= audio_buf0[audio_index+1];
                 end else begin   // buf1
-                    audio_lch<= audio_buf1[audio_index];
-                    audio_rch<= audio_buf1[audio_index+1];
+                    audio_L_ch<= audio_buf1[audio_index];
+                    audio_R_ch<= audio_buf1[audio_index+1];
                 end
             end
         end

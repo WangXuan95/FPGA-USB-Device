@@ -53,8 +53,8 @@ usb_audio_top usb_audio_serial_i (
     .usb_dp          ( usb_dp              ),
     .usb_dn          ( usb_dn              ),
     // Audio 48kHz 16bit 2 channel (host-to-device)
-    .audio_lch       ( audio_L_ch          ),   // Audio left channel
-    .audio_rch       ( audio_R_ch          )    // Audio right channel
+    .audio_L_ch      ( audio_L_ch          ),   // Audio left channel
+    .audio_R_ch      ( audio_R_ch          )    // Audio right channel
 );
 
 endmodule
