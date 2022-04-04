@@ -14,7 +14,7 @@ module usbfs_transaction #(
     input  wire        clk,
     // RX packet-level signals
     input  wire [ 3:0] rp_pid,
-    input  wire [10:0] rp_addr,
+    input  wire [ 3:0] rp_endp,
     input  wire        rp_byte_en,
     input  wire [ 7:0] rp_byte,
     input  wire        rp_fin,
@@ -41,7 +41,6 @@ initial {tp_sta, tp_pid, tp_byte, tp_fin_n} = '0;
 initial desc_addr = '1;
 initial {out_data, out_valid} = '0;
 
-wire[ 3:0] rp_endp = rp_addr[10:7];
 reg        issetup = '0;
 reg [ 3:0] endp = '0;
 

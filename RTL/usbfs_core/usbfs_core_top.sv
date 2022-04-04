@@ -13,7 +13,7 @@ module usbfs_core_top #(
     input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset)
     input  wire        clk,           // 60MHz is required
     // USB signals
-    output wire        usb_dp_pull,   // connect to USB D+ by an 1.5k resistor
+    output reg         usb_dp_pull,   // connect to USB D+ by an 1.5k resistor
     inout              usb_dp,        // USB D+
     inout              usb_dn,        // USB D-
     // USB reset output
@@ -30,7 +30,7 @@ module usbfs_core_top #(
     output wire        in_ready       // in_ready handshakes with in_valid. in_ready=1 indicates the data byte can be accept.
 );
 
-initial {usb_dp_pull, usb_rstn} <= '0;
+initial {usb_dp_pull, usb_rstn} = '0;
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 // USB driving signals
@@ -181,7 +181,7 @@ usbfs_transaction #(
     .rstn            ( usb_rstn         ),
     .clk             ( clk              ),
     .rp_pid          ( rp_pid           ),
-    .rp_addr         ( rp_addr          ),
+    .rp_endp         ( rp_addr[10:7]    ),
     .rp_byte_en      ( rp_byte_en       ),
     .rp_byte         ( rp_byte          ),
     .rp_fin          ( rp_fin           ),
