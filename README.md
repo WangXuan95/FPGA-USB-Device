@@ -50,12 +50,14 @@ FPGA USB-device 控制器。可实现 CDC (虚拟串口)，或 HID (键盘输入
 | RTL/usb_cdc/fpga_top_usb_cdc.sv | FPGA顶层。展示如何用 usb_cdc_top.sv 实现一个回环的虚拟串口（通过minicom/超级终端/串口助手发送的字符会回传）。已在 Windows 和 Linux 上成功识别和工作（操作系统自带驱动程序，无需额外安装） |
 | RTL/usb_hid/usb_hid_top.sv      | 调用 USB-device 控制器，实现 HID 键盘，用于模拟键盘输入      |
 | RTL/usb_hid/fpga_top_usb_hid.sv | FPGA顶层。展示如何用 usb_hid_top.sv 实现一个不断按下的键盘。已在 Windows 和 Linux 上成功识别和工作（操作系统自带驱动程序，无需额外安装） |
+| RTL/usb_audio/usb_audio_top.sv      | 调用 USB-device 控制器，实现 audio class，用于输出音频流      |
+| RTL/usb_audio/fpga_top_usb_audio.sv | FPGA顶层。展示如何用 usb_audio_top.sv 实现一个双声道 16bit 48kHz采样率的USB声卡，采用usb audio class 1.0标准。已在 Windows 和 Linux 上成功识别和工作（操作系统自带驱动程序，无需额外安装） |
 
-> **注意**：以上代码都是 SystemVerilog 行为级实现，支持任意 FPGA 平台。但除了 fpga_top_usb_cdc.sv 和 fpga_top_usb_hid.sv 里的 altpll 是仅限于 Altera Cyclone IV E 的原语，它用来生成 60MHz 时钟。如果你用的不是 Altera Cyclone IV E，请使用其它的 IP 核（例如 Xilinx 的 clock wizard）或原语来替换。
+> **注意**：以上代码都是 SystemVerilog 行为级实现，支持任意 FPGA 平台。但除了 fpga_top_usb_cdc.sv 、 fpga_top_usb_hid.sv 和 fpga_top_usb_audio.sv 里的 altpll 是仅限于 Altera Cyclone IV E 的原语，它用来生成 60MHz 时钟。如果你用的不是 Altera Cyclone IV E，请使用其它的 IP 核（例如 Xilinx 的 clock wizard）或原语来替换。
 
 
 
-usb_cdc_top.sv 和 usb_hid_top.sv 中，我提供了简洁的调用接口，如下：
+usb_cdc_top.sv 、 usb_hid_top.sv 和 usb_audio_top.sv 中，我提供了简洁的调用接口，如下：
 
 ### module usb_hid_top
 
@@ -85,11 +87,23 @@ usb_cdc_top.sv 和 usb_hid_top.sv 中，我提供了简洁的调用接口，如�
     input  wire        send_valid,    // when device want to send a data byte, set send_valid=1. the data byte will be sent successfully when (send_valid=1 && send_ready=1).
     output wire        send_ready     // send_ready handshakes with send_valid. send_ready=1 indicates send-buffer is not full and will accept the byte on send_data. send_ready=0 indicates send-buffer is full and cannot accept a new byte. 
 
+### module usb_audio_top
+
+    input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset), normally set to 1
+    input  wire        clk,           // 60MHz is required
+    // USB signals
+    output wire        usb_dp_pull,   // connect to USB D+ by an 1.5k resistor
+    inout              usb_dp,        // USB D+
+    inout              usb_dn,        // USB D-
+    // Audio 48kHz 16bit 2 channel
+    output reg [15:0]  audio_lch,     // connect to Audio DAC left channel
+    output reg [15:0]  audio_rch      // connect to Audio DAC right channel
+
 
 
 # Break-Out
 
-RTL/usbfs_core/usbfs_core_top.sv 实现了 USB-Transfer 层往下的完整协议。留出了 descriptor ROM 读接口、Endpoint 0x01 receive 接口和 Endpoint 0x81 send 接口，可以用来开发其它 USB-device。usb_cdc_top.sv 和 usb_hid_top.sv 皆是调用 usbfs_core_top.sv 来实现的。
+RTL/usbfs_core/usbfs_core_top.sv 实现了 USB-Transfer 层往下的完整协议。留出了 descriptor ROM 读接口、Endpoint 0x01 receive 接口和 Endpoint 0x81 send 接口，可以用来开发其它 USB-device。usb_cdc_top.sv 、 usb_hid_top.sv 和 usb_audio_top.sv 皆是调用 usbfs_core_top.sv 来实现的。
 
 例如，你可以仿照 usb_hid_top.sv ，修改 descriptor（描述符），并实现自定义的 send & receive 行为来实现其它 USB-device 。
 
