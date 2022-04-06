@@ -6,7 +6,7 @@
 // Function: example for usb_audio_top
 //--------------------------------------------------------------------------------------------------------
 
-module fpga_top_example (
+module fpga_top_usb_audio (
     // clock and reset
     input  wire        clk50mhz,     // connect to a 50MHz oscillator
     input  wire        button,       // connect to a reset button, 0 is pressed, 1 is unpressed. If you don’t have a button, tie this signal to 1.

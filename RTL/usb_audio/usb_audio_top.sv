@@ -61,6 +61,7 @@ wire [ 9:0] desc_addr;
 reg  [ 7:0] desc_data = '0;
 always @ (posedge clk) desc_data <= descriptor_rom[desc_addr];
 
+wire        usb_rstn;
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 // USB Audio PCM (for host-to-device), 双缓冲空间double bufsize[15:0] =2 * 48000Hz * 0.001s * 2(Ch) * 2(16b/8b) =2*192B =2*96(16b)
@@ -110,7 +111,7 @@ always @ (posedge clk or negedge usb_rstn)
                     bindex1<= '0;
                     ppsta<=~ppsta;   // 切换
                 end else begin
-                    bindex1<=bindex1+1;   //还没满
+                    bindex1<=bindex1+7'd1;   //还没满
                 end
             end
         end else begin //buf0
@@ -120,7 +121,7 @@ always @ (posedge clk or negedge usb_rstn)
                     bindex0<= '0;
                     ppsta<=~ppsta;
                 end else begin
-                    bindex0<=bindex0+1;
+                    bindex0<=bindex0+7'd1;
                 end
             end
         end
@@ -137,7 +138,7 @@ always @ (posedge clk or negedge usb_rstn)
         if((clk48_cnt==60_000_000/48_000-1) || (ppsta_r^ppsta)) begin//计数溢出或乒乓切换 counter overflow or switch buf
             clk48_cnt <= '0;
         end else begin 
-            clk48_cnt <= clk48_cnt+1;
+            clk48_cnt <= clk48_cnt+11'd1;
         end
         if(clk48_cnt==60_000_000/48_000/2) begin  // 将触发值放于中央，保证可靠性
             audio_en <= 1'b1;
@@ -157,7 +158,7 @@ always @ (posedge clk or negedge usb_rstn)
             audio_index<= '0;   // if switch buf
         end else begin
             if(audio_en) begin  // 48kHz speed output
-                audio_index<= audio_index+2;
+                audio_index<= audio_index+7'd2;
                 if(ppsta) begin  // buf0
                     audio_L_ch<= audio_buf0[audio_index];
                     audio_R_ch<= audio_buf0[audio_index+1];
