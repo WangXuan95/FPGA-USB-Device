@@ -80,24 +80,25 @@ USB 具有 `VBUS`, `GND`, `USB_D-`, `USB_D+` 这4根线。以 USB Type B 连接�
 - USB 连接座的 `VBUS` 是一个 5V, 500mA 的电源，可以不连，也可给 FPGA 供电。
 
 
-    _________________
-    |               |
-    |   usb_dp_pull |-------|
-    |               |       |
-    |               |      |-| 1.5k resistor
-    |               |      | |
-    |               |      |_|        ____________                  __________
-    |               |       |         |          |                  |
-    |        usb_dp |-------^---------| USB_D+   |                  |
-    |               |                 |          |    USB cable     |
-    |        usb_dn |-----------------| USB_D-   |<================>| Host PC
-    |               |                 |          |                  |
-    |           GND |-----------------| GND      |                  |
-    |               |                 |          |                  |
-    -----------------                 ------------                  ----------
-          FPGA                          USB 连接座                      电脑
-                         图 : FPGA 连接 USB 的方法
-
+```
+  _________________
+  |               |
+  |   usb_dp_pull |-------|
+  |               |       |
+  |               |      |-| 1.5k resistor
+  |               |      | |
+  |               |      |_|        ____________                  __________
+  |               |       |         |          |                  |
+  |        usb_dp |-------^---------| USB_D+   |                  |
+  |               |                 |          |    USB cable     |
+  |        usb_dn |-----------------| USB_D-   |<================>| Host PC
+  |               |                 |          |                  |
+  |           GND |-----------------| GND      |                  |
+  |               |                 |          |                  |
+  -----------------                 ------------                  ----------
+        FPGA                          USB 连接座                      电脑
+                       图 : FPGA 连接 USB 的方法
+```
 
  
 
@@ -277,6 +278,7 @@ Windows 文件资源管理器中应该能看到这个硬盘，里面有一个文
 这里对其中关键的信号进行说明，包括：
 
 ```verilog
+// signals of usb_disk_top.sv
 output reg  [40:0] mem_addr,      // byte address
 output reg         mem_wen,       // 1:write   0:read
 output reg  [ 7:0] mem_wdata,     // byte to write
@@ -322,7 +324,7 @@ USB插入后，打开 Windows 设备管理器，应该能看到一个键盘设�
 这里的对其中用来发送按键信号的信号进行说明：
 
 ```verilog
-// ports of usb_keyboard_top.sv:
+// signals of usb_keyboard_top.sv:
 input  wire [15:0] key_value,     // Indicates which key to press, NOT ASCII code! see https://www.usb.org/sites/default/files/hut1_21_0.pdf section 10.
 input  wire        key_request,   // when key_request=1 pulses, a key is pressed.
 ```
@@ -452,12 +454,14 @@ USB插入后，打开 Windows 设备管理器，应该能看到2个 USB-serial �
 需要给 `clk` 信号提供 60MHz 的时钟：
 
 ```verilog
+// signals of usbfs_core_top.sv
 input  wire clk,           // 60MHz is required
 ```
 
 复位信号 `rstn` 在正常工作时应该取高电平，如果需要停止工作，可以让 `rstn` 取低电平，此时如果 USB 插在 Host-PC 上，Host-PC 会检测到 USB 被拔出。
 
 ```verilog
+// signals of usbfs_core_top.sv
 input  wire rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset)
 ```
 
@@ -466,6 +470,7 @@ input  wire rstn,          // active-low reset, reset when rstn=0 (USB will unpl
 以下3个信号需要引出到 FPGA 的引脚上，并按照 [电路连接方法](#circuit) 来连接到 USB 接口。
 
 ```verilog
+// signals of usbfs_core_top.sv
 // USB signals
 output reg  usb_dp_pull,   // connect to USB D+ by an 1.5k resistor
 inout       usb_dp,        // USB D+
@@ -475,6 +480,7 @@ inout       usb_dn,        // USB D-
 `usb_rstn` 信号指示了 USB 是否连接，高电平代表已连接；低电平代表未连接。未连接可能是有两种情况：要么USB线被从 Host 上拔出，要么 FPGA 侧主动进行复位（ `rstn=0` ）
 
 ```verilog
+// signals of usbfs_core_top.sv
 output reg  usb_rstn,      // 1: connected , 0: disconnected (when USB cable unplug, or when system reset (rstn=0))
 ```
 
@@ -483,6 +489,7 @@ output reg  usb_rstn,      // 1: connected , 0: disconnected (when USB cable unp
 当以下两个信号 `sot` 和 `sof` 出现一周期的高电平时，分别指示了 USB-transfer 和 USB-frame 的开始。其中 USB-transfer 是指一个 USB transfer 的全过程，包括 control transfer, interrupt transfer, bulk transfer 和 isochronous transfer 。而 USB-frame 起始于 USB-host 每 1ms 会发送一次的 SOF token ，可以用来指导  isochronous transfer 。
 
 ```verilog
+// signals of usbfs_core_top.sv
 output reg  sot,           // detect a start of USB-transfer
 output reg  sof,           // detect a start of USB-frame
 ```
@@ -492,6 +499,7 @@ output reg  sof,           // detect a start of USB-frame
 以下三个信号 `ep00_setup_cmd`, `ep00_resp_idx`, `ep00_resp` 提供了响应 control transfer 的接口。
 
 ```verilog
+// signals of usbfs_core_top.sv
 // endpoint 0 (control endpoint) command response here
 output wire [63:0] ep00_setup_cmd,
 output wire [ 8:0] ep00_resp_idx,
@@ -532,6 +540,7 @@ always @ (posedge clk)
 - 在 `ep81_ready=1` 的下一个周期，如果 IN packet 发送结束，需要令 `ep81_valid=0` 。如果 IN packet 还有字节每发完，保持  `ep81_valid=1`  ，并将  `ep81_data`  更新为新的待发送的字节。
 
 ```verilog
+// signals of usbfs_core_top.sv
 // endpoint 0x81 data input (device-to-host)
 input  wire [ 7:0] ep81_data,     // IN data byte
 input  wire        ep81_valid,    // when device want to send a data byte, assert valid=1. the data byte will be sent successfully when valid=1 & ready=1.
@@ -557,6 +566,7 @@ output wire        ep84_ready,    // handshakes with valid. ready=1 indicates th
 例如，当 `ep01_valid` 出现一个周期的高电平时，说明收到了 OUT packet 中的一个字节，该字节出现在 `ep01_data` 上。另外，packet 的边界可以用之前讲过的 `sot` 信号来检测。
 
 ```verilog
+// signals of usbfs_core_top.sv
 // endpoint 0x84 data input (device-to-host)
 input  wire [ 7:0] ep84_data,     // IN data byte
 input  wire        ep84_valid,    // when device want to send a data byte, assert valid=1. the data byte will be sent successfully when valid=1 & ready=1.
@@ -580,6 +590,7 @@ output wire        ep04_valid,    // when out_valid=1 pulses, a data byte is rec
 以下信号用来向外界打印调试信息。调试信息是一个 ASCII 码字节流，是人类可读的。当 `debug_en=1`  时， `debug_data` 上出现一个字节。
 
 ```verilog
+// signals of usbfs_core_top.sv
 // debug output info, only for USB developers, can be ignored for normally use
 output wire        debug_en,      // when debug_en=1 pulses, a byte of debug info appears on debug_data
 output wire [ 7:0] debug_data,    // 
