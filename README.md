@@ -2,7 +2,7 @@
 
 USB 1.1 device 控制器。可在 FPGA 上实现各种 USB 设备。比如 USB扬声器和麦克风、USB摄像头、U盘、USB键盘、USB串口 。
 
-
+　
 
 FPGA USB-device
 ===========================
@@ -29,7 +29,7 @@ USB 是最常用的外设通信总线，用于实现各种功能的外设。为�
 - 4 个 IN endpoint (0x81\~0x84) 、 4 个 OUT endpoint (0x01\~0x04) 。
 - 可选的调试输出接口 (debug interface)，通过一个额外的UART打印调试信息到电脑，可以看到 USB 数据包的通信过程。
 
- 
+ 　
 
 ## 效果展示
 
@@ -42,7 +42,7 @@ USB 是最常用的外设通信总线，用于实现各种功能的外设。为�
 |   **USB-Serial**   |  ![](./figures/ls_serial.png)  | ![](./figures/test_serial.png) |
 | **USB-Serial-2ch** | ![](./figures/ls_serial2.png)  |              同上              |
 
- 
+ 　
 
 ## 兼容性
 
@@ -61,7 +61,7 @@ USB 是最常用的外设通信总线，用于实现各种功能的外设。为�
 >
 > :x: macOS 能识别我的 USB 摄像头设备，但无法读出视频，原因未知，留待后续解决。
 
- 
+ 　
 
 # <span id="circuit">Ⅰ 电路连接</span>
 
@@ -100,7 +100,7 @@ USB 具有 `VBUS`, `GND`, `USB_D-`, `USB_D+` 这4根线。以 USB Type B 连接�
                        图 : FPGA 连接 USB 的方法
 ```
 
- 
+ 　
 
 # Ⅱ 代码文件一览
 
@@ -112,7 +112,7 @@ USB 具有 `VBUS`, `GND`, `USB_D-`, `USB_D+` 这4根线。以 USB Type B 连接�
 |     [RTL/usb_class](./RTL/usb_class)     |    USB class    | 在 USB device core 的基础上实现了一些 USB class 。例如用 USB Communication Device Class (USB-CDC) 实现 USB-Serial；用 USB Video Class (UVC) 实现摄像头 …… |
 |    [RTL/usbfs_core](./RTL/usbfs_core)    | USB device core | 一个通用的 USB device core，实现 USB 底层信号的处理，包括从 bit-level 到 transaction-level 。熟悉 USB 协议栈的开发者可以用它来开发更多的 USB 设备，详见 [USB device 二次开发](#usbcore) 。 |
 
- 
+ 　
 
 具体地，对每个代码文件说明如下：
 
@@ -140,7 +140,7 @@ USB 具有 `VBUS`, `GND`, `USB_D-`, `USB_D+` 这4根线。以 USB Type B 连接�
 
 下文逐一介绍本库提供的每一个 USB class 的使用方法。最后会介绍 [基于 USB device core 的二次开发](#usbcore) 。
 
- 
+ 　
 
 # Ⅲ USB 音频
 
@@ -169,7 +169,7 @@ USB插入后，打开 Windows 设备管理器，应该能看到扬声器和麦�
 
 你可以基于这个简单的例子开发更复杂的音频应用，为此你需要关注 **usb_audio_top.sv** 的模块接口，详见代码注释，这里不做赘述。
 
- 
+ 　
 
 # Ⅳ USB 摄像头
 
@@ -248,7 +248,7 @@ input  wire [ 7:0] vf_byte,               //                                    
 
 帧率 = 400000 / (帧宽度×帧高度)    *(帧/秒)*
 
- 
+ 　
 
 # Ⅴ U盘
 
@@ -296,7 +296,7 @@ input  wire [ 7:0] mem_rdata,     // byte to read
 
 > :warning: 文件系统是用来组织文件的数据结构，和文件本身一样也存储在硬盘里。制作方法比较复杂，不在这里赘述。如果需要制作定制的 U盘设备，可以通过 issue 联系本人。
 
- 
+ 　
 
 # Ⅵ USB键盘
 
@@ -331,7 +331,7 @@ input  wire        key_request,   // when key_request=1 pulses, a key is pressed
 
 `key_request`平时需要保持为0，当你需要按下一个键时，需要让 `key_request=1` 一个周期，同时在 `key_value` 上输入该按键对应的代码。按键代码的定义详见 https://www.usb.org/sites/default/files/hut1_21_0.pdf 的 Section 10 。例如，按键 'a'-'z' 对应 `key_value=16'h0004~16'h001D`  ，按键 '1'-'0' 对应 `key_value=16'h001E~16'h0027`  。
 
- 
+ 　
 
 # Ⅶ USB-Serial
 
@@ -379,7 +379,7 @@ output wire        send_ready,    // send_ready handshakes with send_valid. send
 
 **usb_serial_top.sv** 中有 1024 字节的发送缓存。如果需要发送的数据吞吐率不大，发送缓存永远不会满，也可也无视 `send_ready` 信号。然而，在数据吞吐率较大从而可能导致发送缓存满的情况下，如果无视 `send_ready=0`  的情况，可能导致部分数据丢失。
 
- 
+ 　
 
 # Ⅷ 双通道 USB-Serial
 
@@ -404,7 +404,7 @@ USB插入后，打开 Windows 设备管理器，应该能看到2个 USB-serial �
 
 你可以基于这个简单的例子开发更复杂的 Serial-Port 通信应用，为此你需要关注 **usb_serial2_top.sv** 的模块接口（详见代码注释），其用法与单通道的 USB-Serial 相同，只不过发送和接收接口都变成了双通道，这里不做赘述。
 
- 
+ 　
 
 # <span id="usbcore">Ⅸ 基于 USB device core 的二次开发</span>
 
@@ -609,7 +609,9 @@ output wire        debug_uart_tx  // debug_uart_tx is the signal after convertin
 
 > :warning: 因为 UART 的传输速度较慢，当大量的调试信息产生时，会有一部分调试信息被 UART 丢弃。例如当 UVC 进行视频传输时，因为传输的数据量很大，UART 打印的信息是不完整的。因此如果需要在大量数据通信的过程中查看调试信息，就不能用 UART ，而是用其它高速的通信方式将  `{debug_en, debug_data}` 发给 host-PC 来查看。
 
- 
+ 　
+
+　
 
 # 参考资料
 
@@ -625,7 +627,6 @@ output wire        debug_uart_tx  // debug_uart_tx is the signal after convertin
   * http://jorisvr.nl/article/usb-serial : 一个 USB-CDC，VHDL实现，需要额外的 UTMI PHY。
   * https://github.com/pbing/USB : 一个 Low Speed 的 USB-HID 实现。
   * https://github.com/ultraembedded/cores : 包含一些 USB-host 和 USB-device 实现，需要 UTMI PHY 或 ULPI PHY。
-
 
 
 
