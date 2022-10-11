@@ -35,9 +35,9 @@ USB 是最常用的外设通信总线，用于实现各种功能的外设。为�
 
 |                    | Windows 设备管理器中看到的设备 |            效果展示            |
 | :----------------: | :----------------------------: | :----------------------------: |
-|    **USB音频 **    |  ![](./figures/ls_audio.png)   | ![](./figures/test_audio.png)  |
-|   **USB摄像头 **   |  ![](./figures/ls_camera.png)  | ![](./figures/test_camera.png) |
-|      **U盘 **      |   ![](./figures/ls_disk.png)   |  ![](./figures/test_disk.png)  |
+|    **USB音频**     |  ![](./figures/ls_audio.png)   | ![](./figures/test_audio.png)  |
+|   **USB摄像头**    |  ![](./figures/ls_camera.png)  | ![](./figures/test_camera.png) |
+|      **U盘**       |   ![](./figures/ls_disk.png)   |  ![](./figures/test_disk.png)  |
 |    **USB键盘**     | ![](./figures/ls_keyboard.png) |    每2秒按下一个英文字母键     |
 |   **USB-Serial**   |  ![](./figures/ls_serial.png)  | ![](./figures/test_serial.png) |
 | **USB-Serial-2ch** | ![](./figures/ls_serial2.png)  |              同上              |
@@ -50,9 +50,9 @@ USB 是最常用的外设通信总线，用于实现各种功能的外设。为�
 
 |     兼容性测试     |     Windows 10     | Linux Ubuntu 18.04 |    macOS 10.15     |
 | :----------------: | :----------------: | :----------------: | :----------------: |
-|    **USB音频 **    | :heavy_check_mark: |     :warning:      | :heavy_check_mark: |
+|    **USB音频**     | :heavy_check_mark: |     :warning:      | :heavy_check_mark: |
 |   **USB摄像头**    | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
-|      **U盘 **      | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+|      **U盘**       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 |    **USB键盘**     | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 |   **USB-Serial**   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | **USB-Serial-2ch** | :heavy_check_mark: |     :warning:      | :heavy_check_mark: |
@@ -65,11 +65,11 @@ USB 是最常用的外设通信总线，用于实现各种功能的外设。为�
 
 # <span id="circuit">Ⅰ 电路连接</span>
 
-USB 具有 `VBUS`, `GND`, `USB_D-`, `USB_D+` 这4根线。以 USB Type B 连接座（俗称USB方口母座）为例，这4根线定义如**图1**。
+USB 具有 `VBUS`, `GND`, `USB_D-`, `USB_D+` 这4根线。以 USB Type B 连接座（俗称USB方口母座）为例，这4根线定义如下图。
 
 | ![USBTypeB](./figures/usb_typeb.png)  |
 | :-----------------------------------: |
-| **图1**：USB 连接座（方口母座）与线。 |
+| **图**：USB 连接座（方口母座）与线。 |
 
 请进行如下图的电路连接。其中 `usb_dp_pull`, `usb_dp`, `usb_dn` 是 FPGA 的 3 个普通IO引脚（电平必须为 3.3V）。其中：
 
