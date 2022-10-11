@@ -1,22 +1,27 @@
 
 //--------------------------------------------------------------------------------------------------------
-// Module  : fpga_top_usb_audio
+// Module  : fpga_top_usb_serial
 // Type    : synthesizable, fpga top
 // Standard: SystemVerilog 2005 (IEEE1800-2005)
-// Function: example for usb_audio_top
+// Function: example for usb_serial_top
 //--------------------------------------------------------------------------------------------------------
 
-module fpga_top_usb_audio (
-    // clock and reset
+module fpga_top_usb_serial (
+    // clock
     input  wire        clk50mhz,     // connect to a 50MHz oscillator
-    input  wire        button,       // connect to a reset button, 0 is pressed, 1 is unpressed. If you don’t have a button, tie this signal to 1.
+    // reset button
+    input  wire        button,       // connect to a reset button, 0=reset, 1=release. If you don't have a button, tie this signal to 1.
+    // LED
+    output wire        led,          // 1: USB connected , 0: USB disconnected
     // USB signals
     output wire        usb_dp_pull,  // connect to USB D+ by an 1.5k resistor
     inout              usb_dp,       // connect to USB D+
     inout              usb_dn,       // connect to USB D-
-    output wire[15:0]  audio_L_ch,   // connect to Audio DAC left channel
-    output wire[15:0]  audio_R_ch    // connect to Audio DAC right channel
+    // debug output info, only for USB developers, can be ignored for normally use
+    output wire        uart_tx       // If you want to see the debug info of USB device core, please connect this UART signal to host-PC (UART format: 115200,8,n,1), otherwise you can ignore this signal.
+
 );
+
 
 
 
@@ -37,24 +42,41 @@ defparam altpll_i.bandwidth_type = "AUTO",    altpll_i.clk0_divide_by = 5,    al
 
 
 
+
 //-------------------------------------------------------------------------------------------------------------------------------------
-// use USB-CDC device to implement a COM-port (i.e., USB-UART)
-// the behavior is simply loopback. When using minicom/hyperterminal/serial-assistant to send data from the host to the device, the data will be returned.
-// Uncomment this piece of code and comment the USB-HID code above to implement USB-CDC.
+// USB-CDC Serial port device
 //-------------------------------------------------------------------------------------------------------------------------------------
 
-wire [15:0]al,ar;
+// here we simply make a loopback connection for testing, but convert lowercase letters to uppercase.
+// When using minicom/hyperterminal/serial-assistant to send data from the host to the device, the send data will be returned.
+wire [ 7:0] recv_data;
+wire        recv_valid;
+wire [ 7:0] send_data = (recv_data >= 8'h61 && recv_data <= 8'h7A) ? (recv_data - 8'h20) : recv_data;   // lowercase -> uppercase
 
-usb_audio_top usb_audio_serial_i (
+usb_serial_top #(
+    .DEBUG           ( "FALSE"             )    // If you want to see the debug info of USB device core, set this parameter to "TRUE"
+) usb_serial_i (
     .rstn            ( clk_locked & button ),
     .clk             ( clk60mhz            ),
     // USB signals
     .usb_dp_pull     ( usb_dp_pull         ),
     .usb_dp          ( usb_dp              ),
     .usb_dn          ( usb_dn              ),
-    // Audio 48kHz 16bit 2 channel (host-to-device)
-    .audio_L_ch      ( audio_L_ch          ),   // Audio left channel
-    .audio_R_ch      ( audio_R_ch          )    // Audio right channel
+    // USB reset output
+    .usb_rstn        ( led                 ),   // 1: connected , 0: disconnected (when USB cable unplug, or when system reset (rstn=0))
+    // CDC receive data (host-to-device)
+    .recv_data       ( recv_data           ),   // received data byte
+    .recv_valid      ( recv_valid          ),   // when recv_valid=1 pulses, a data byte is received on recv_data
+    // CDC send data (device-to-host)
+    .send_data       ( send_data           ),   // 
+    .send_valid      ( recv_valid          ),   // loopback connect recv_valid to send_valid
+    .send_ready      (                     ),   // ignore send_ready, ignore the situation that the send buffer is full (send_ready=0). So here it will lose data when you send a large amount of data
+    // debug output info, only for USB developers, can be ignored for normally use
+    .debug_en        (                     ),
+    .debug_data      (                     ),
+    .debug_uart_tx   ( uart_tx             )
 );
+
+
 
 endmodule

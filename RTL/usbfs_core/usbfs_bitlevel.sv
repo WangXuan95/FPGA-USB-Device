@@ -38,19 +38,29 @@ initial {usb_oe, usb_dp_tx, usb_dn_tx} = 3'b010;
 initial {rx_sta, rx_ena, rx_bit, rx_fin, tx_req} = '0;
 
 
-reg  [ 3:0] dpl = '0;
-reg  [ 3:0] dnl = '0;
+reg  [ 4:0] dpl = '0;
+reg  [ 4:0] dnl = '0;
 
 wire        dpv = &dpl[3:2] | &dpl[2:1] | dpl[3] & dpl[1];
 wire        dnv = &dnl[3:2] | &dnl[2:1] | dnl[3] & dnl[1];
 wire        njl = ~dpl[0] | dnl[0];
 
+// use the bit border to detect whether our clock runs faster/slower than the host. For compensating. Ensure that we will not have alignment errors when receiving long packets
+wire        det_fast = ( (dpl[4] != dpl[3]) && (dpl[3] == dpl[2]) && (dpl[2] == dpl[1]) && (dpl[1] == dpl[0]) ) ||    
+                       (                       (dpl[3] != dpl[2]) && (dpl[2] == dpl[1]) && (dpl[1] == dpl[0]) ) ;
+wire        det_slow = ( (dpl[4] == dpl[3]) && (dpl[3] == dpl[2]) && (dpl[2] == dpl[1]) && (dpl[1] != dpl[0]) ) ||
+                       ( (dpl[4] == dpl[3]) && (dpl[3] == dpl[2]) && (dpl[2] != dpl[1])                       ) ;
+
+// other simpler faster/slower detection, which also works. But I believe its effect is not as good as the complicated one.
+//wire        det_fast = (dpl[3] != dpl[2]) && (dpl[2] == dpl[1]);
+//wire        det_slow = (dpl[3] == dpl[2]) && (dpl[2] != dpl[1]);
+
 reg         lastdp = 1'b0;
-reg  [ 2:0] cnt_clk = '0;
+reg  [ 2:0] cnt_clk = 3'd4;    // down-counter, range: 4-0 (normally), 5-0 (fast compensate), 3-0 (slow compensate)
 reg  [ 5:0] cnt_bit = '0;
 
 wire        cnt_clk_eq2 = cnt_clk == 3'd2;
-wire        cnt_clk_eq4 = cnt_clk >= 3'd4;
+wire        cnt_clk_eq0 = cnt_clk == 3'd0;
 wire [ 7:0] sync_byte = 8'b00101010;
 
 enum logic [3:0] {JWAIT, IDLE, SYNC, DATA, DONE, TXWAIT, TXOE, TXSYNC, TXDATA, TXEOP1, TXEOP2, TXDONE} status = JWAIT;
@@ -64,8 +74,8 @@ always @ (posedge clk)
         dpl <= '0;
         dnl <= '0;
     end else begin
-        dpl <= {dpl[2:0], usb_dp_rx};
-        dnl <= {dnl[2:0], usb_dn_rx};
+        dpl <= {dpl[3:0], usb_dp_rx};
+        dnl <= {dnl[3:0], usb_dn_rx};
     end
 
 
@@ -74,7 +84,7 @@ always @ (posedge clk)
     if(~rstn)
         lastdp <= '0;
     else
-        if(cnt_clk_eq4) lastdp <= dpv;
+        if(cnt_clk_eq0) lastdp <= dpv;
 
 
 // main FSM ------------------------------------------------------------------------------------------------------------------------------------------
@@ -82,12 +92,12 @@ always @ (posedge clk)
     if(~rstn) begin
         {usb_oe, usb_dp_tx, usb_dn_tx} = 3'b010;
         {rx_sta, rx_ena, rx_bit, rx_fin, tx_req} <= '0;
-        cnt_clk <= '0;
+        cnt_clk <= 3'd4;
         cnt_bit <= '0;
         status <= JWAIT;
     end else begin
         {rx_sta, rx_ena, rx_bit, rx_fin, tx_req} <= '0;
-        cnt_clk <= cnt_clk_eq4 ? '0 : cnt_clk + 3'd1;
+        cnt_clk <= cnt_clk_eq0 ? 3'd4 : cnt_clk - 3'd1;
         case(status)
             JWAIT  :
                 if(njl) begin
@@ -100,11 +110,11 @@ always @ (posedge clk)
                 end
             IDLE   :
                 if(njl) begin
-                    cnt_clk <= 3'd1;
+                    cnt_clk <= 3'd3;
                     status <= SYNC;
                 end
             SYNC   :
-                if(cnt_clk_eq4) begin
+                if(cnt_clk_eq0) begin
                     if(dpv != sync_byte[cnt_bit] || dnv == sync_byte[cnt_bit]) begin
                         cnt_bit <= '0;
                         status <= JWAIT;
@@ -117,7 +127,7 @@ always @ (posedge clk)
                     end
                 end
             DATA   :
-                if(cnt_clk_eq4) begin
+                if(cnt_clk_eq0) begin
                     cnt_bit <= 6'd0;
                     if         ( dpv &  dnv) begin              // SE1 error
                         status <= JWAIT;
@@ -132,11 +142,15 @@ always @ (posedge clk)
                     end else begin                              // 0
                         {rx_ena, rx_bit} <= 2'b10;
                     end
+                    if(det_fast)                                // our clock runs too fast
+                        cnt_clk <= 3'd5;                        //   fast compensate : let us slower
+                    else if(det_slow)                           // our clock runs too slow
+                        cnt_clk <= 3'd3;                        //   slow compensate : let us faster
                 end
             DONE   :
                 if(tx_sta)
                     status <= TXWAIT;
-                else if(cnt_clk_eq4)
+                else if(cnt_clk_eq0)
                     status <= JWAIT;
             TXWAIT :
                 if(njl) begin
@@ -148,12 +162,12 @@ always @ (posedge clk)
                     status <= TXOE;
                 end
             TXOE   :
-                if(cnt_clk_eq4) begin
+                if(cnt_clk_eq0) begin
                     {usb_oe, usb_dp_tx, usb_dn_tx} = 3'b110;
                     status <= TXSYNC;
                 end
             TXSYNC :
-                if(cnt_clk_eq4) begin
+                if(cnt_clk_eq0) begin
                     {usb_oe, usb_dp_tx, usb_dn_tx} = {1'b1, sync_byte[cnt_bit], ~sync_byte[cnt_bit]};
                     if(cnt_bit >= 6'd7) begin
                         cnt_bit <= 6'd1;
@@ -165,7 +179,7 @@ always @ (posedge clk)
             TXDATA :
                 if(cnt_clk_eq2) begin
                     tx_req <= ~(cnt_bit >= CNT_STUFF);
-                end else if(cnt_clk_eq4) begin
+                end else if(cnt_clk_eq0) begin
                     if(cnt_bit >= CNT_STUFF) begin
                         cnt_bit <= '0;
                         {usb_oe, usb_dp_tx, usb_dn_tx} = {1'b1, ~usb_dp_tx, usb_dp_tx};
@@ -181,17 +195,17 @@ always @ (posedge clk)
                     end
                 end
             TXEOP1:
-                if(cnt_clk_eq4) begin
+                if(cnt_clk_eq0) begin
                     {usb_oe, usb_dp_tx, usb_dn_tx} = 3'b100;
                     status <= TXEOP2;
                 end
             TXEOP2:
-                if(cnt_clk_eq4) begin
+                if(cnt_clk_eq0) begin
                     {usb_oe, usb_dp_tx, usb_dn_tx} = 3'b110;
                     status <= TXDONE;
                 end
             TXDONE:
-                if(cnt_clk_eq4) begin
+                if(cnt_clk_eq0) begin
                     {usb_oe, usb_dp_tx, usb_dn_tx} = 3'b010;
                     cnt_bit <= 6'd5;
                     status <= JWAIT;

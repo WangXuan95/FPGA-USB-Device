@@ -1,19 +1,24 @@
 
 //--------------------------------------------------------------------------------------------------------
-// Module  : fpga_top_usb_hid
+// Module  : fpga_top_usb_camera
 // Type    : synthesizable, fpga top
 // Standard: SystemVerilog 2005 (IEEE1800-2005)
-// Function: example for usb_hid_top
+// Function: example for usb_camera_top
 //--------------------------------------------------------------------------------------------------------
 
-module fpga_top_usb_hid (
-    // clock and reset
+module fpga_top_usb_camera (
+    // clock
     input  wire        clk50mhz,     // connect to a 50MHz oscillator
-    input  wire        button,       // connect to a reset button, 0 is pressed, 1 is unpressed. If you don’t have a button, tie this signal to 1.
+    // reset button
+    input  wire        button,       // connect to a reset button, 0=reset, 1=release. If you don't have a button, tie this signal to 1.
+    // LED
+    output wire        led,          // 1: USB connected , 0: USB disconnected
     // USB signals
     output wire        usb_dp_pull,  // connect to USB D+ by an 1.5k resistor
     inout              usb_dp,       // connect to USB D+
-    inout              usb_dn        // connect to USB D-
+    inout              usb_dn,       // connect to USB D-
+    // debug output info, only for USB developers, can be ignored for normally use
+    output wire        uart_tx       // If you want to see the debug info of USB device core, please connect this UART signal to host-PC (UART format: 115200,8,n,1), otherwise you can ignore this signal.
 );
 
 
@@ -38,34 +43,53 @@ defparam altpll_i.bandwidth_type = "AUTO",    altpll_i.clk0_divide_by = 5,    al
 
 
 //-------------------------------------------------------------------------------------------------------------------------------------
-// use USB-HID device to implement a keyboard
+// USB-UVC camera device
 //-------------------------------------------------------------------------------------------------------------------------------------
 
-reg [31:0] count = 0;             // count is a clock counter that runs from 0 to 120000000, each period takes 2 seconds
-reg        key_request = '0;
-reg [15:0] key_value = 16'h0004;
+wire        vf_sof;
+wire        vf_req;
+reg  [ 7:0] vf_byte;
 
-always @ (posedge clk60mhz)
-    if(count < 120000000) begin
-        count <= count + 1;
-        key_request <= 1'b0;
-    end else begin               
-        count <= 0;
-        key_request <= 1'b1;
-        key_value <= (key_value < 16'h0027) ? key_value + 16'h1 : 16'h0004;
-    end
-
-usb_hid_top usb_hid_keyboard_i (
+usb_camera_top #(
+    .FRAME_TYPE      ( "MONO"              ),   // "MONO" or "YUY2"
+    .FRAME_W         ( 14'd252             ),   // video-frame width  in pixels, must be a even number
+    .FRAME_H         ( 14'd120             ),   // video-frame height in pixels, must be a even number
+    .DEBUG           ( "FALSE"             )    // If you want to see the debug info of USB device core, set this parameter to "TRUE"
+) usb_camera_i (
     .rstn            ( clk_locked & button ),
     .clk             ( clk60mhz            ),
     // USB signals
     .usb_dp_pull     ( usb_dp_pull         ),
     .usb_dp          ( usb_dp              ),
     .usb_dn          ( usb_dn              ),
-    // HID keyboard press signal
-    .key_value       ( key_value           ),   // key_value runs from 16'h0004 (a) to 16'h0027 (9). The keyboard will type a~z and 0~9 cyclically.
-    .key_request     ( key_request         )    // key_request=1 pulse every 2 seconds. The keyboard will press a key every 2 seconds.
+    // USB reset output
+    .usb_rstn        ( led                 ),   // 1: connected , 0: disconnected (when USB cable unplug, or when system reset (rstn=0))
+    // video frame fetch interface
+    .vf_sof          ( vf_sof              ),
+    .vf_req          ( vf_req              ),
+    .vf_byte         ( vf_byte             ),
+    // debug output info, only for USB developers, can be ignored for normally use
+    .debug_en        (                     ),
+    .debug_data      (                     ),
+    .debug_uart_tx   ( uart_tx             )
 );
+
+
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------
+// generate pixels
+//-------------------------------------------------------------------------------------------------------------------------------------
+reg  [7:0] init_pixel = 8'h00;
+
+always @ (posedge clk60mhz)
+    if(vf_sof) begin
+        init_pixel <= init_pixel + 8'h1;
+        vf_byte <= init_pixel;
+    end else  if(vf_req) begin
+        vf_byte <= vf_byte + 8'h1;
+    end
+
 
 
 endmodule
