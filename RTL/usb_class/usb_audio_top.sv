@@ -36,7 +36,7 @@ initial audio_en = 1'b0;
 initial {audio_ro, audio_lo} = '0;
 
 
-wire       sot;
+wire       sof;
 
 wire [7:0] out_data;      // data from USB device core (host-to-device)
 wire       out_valid;
@@ -80,7 +80,7 @@ always @ (posedge clk or negedge usb_rstn)
         o_pcm_en  <= '0;
     end else begin
         o_pcm_en <= '0;
-        if(sot) begin                                 // reset at the start of a new frame
+        if(sof) begin                                 // reset at the start of a new frame
             o_pcm_cnt <= '0;
         end else if(out_valid) begin
             o_pcm_cnt <= o_pcm_cnt + 2'd1;
@@ -169,7 +169,7 @@ always @ (posedge clk or negedge usb_rstn)
         i_pkt_cnt <= '0;
         in_valid <= '0;
     end else begin
-        if(sot) begin
+        if(sof) begin
             i_pcm_cnt <= '0;
             i_pkt_cnt <= '0;
             in_valid <= 1'b1;
@@ -249,8 +249,8 @@ usbfs_core_top  #(
     .usb_dp             ( usb_dp           ),
     .usb_dn             ( usb_dn           ),
     .usb_rstn           ( usb_rstn         ),
-    .sot                ( sot              ),
-    .sof                (                  ),
+    .sot                (                  ),
+    .sof                ( sof              ),
     .ep00_setup_cmd     (                  ),
     .ep00_resp_idx      (                  ),
     .ep00_resp          ( '0               ),

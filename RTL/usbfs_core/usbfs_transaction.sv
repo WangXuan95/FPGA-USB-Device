@@ -296,11 +296,10 @@ always @ (posedge clk or negedge rstn)
         sot <= 1'b0;
         sof <= 1'b0;
         if(rp_fin & rp_okay) begin
-            if(rp_endp == 4'd0) begin
+            if(rp_endp == 4'd0)
                 sot <= (rp_pid == PID_SETUP);
-            end else begin
+            else
                 sot <= (rp_pid == PID_IN || rp_pid == PID_OUT);
-            end
             sof <= (rp_pid == PID_SOF);
         end
     end
