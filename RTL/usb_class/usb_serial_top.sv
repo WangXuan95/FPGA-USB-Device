@@ -96,11 +96,11 @@ usbfs_core_top  #(
         'h05, 'h24, 'h06, 'h00, 'h01,                            // functional descriptor (union)
         'h07, 'h05, 'h88, 'h03, 'h08, 'h00, 'hFF,                // endpoint descriptor (notify IN)
         'h09, 'h04, 'h01, 'h00, 'h02, 'h0A, 'h00, 'h00, 'h00,    // interface descriptor (communication data class)
-        'h07, 'h05, 'h81, 'h02, 'h20, 'h00, 'h00,                // endpoint descriptor (data IN)
+        'h07, 'h05, 'h81, 'h02, 'h40, 'h00, 'h00,                // endpoint descriptor (data IN)
         'h07, 'h05, 'h01, 'h02, 'h20, 'h00, 'h00,                // endpoint descriptor (data OUT)
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     } ),
-    .EP81_MAXPKTSIZE    ( 10'h20           ),
+    .EP81_MAXPKTSIZE    ( 10'h20           ),   // Here, I make the maximum packet length actually sent by the in endpoint (0x20) be less than the maximum packet length specified by the endpoint descriptor (0x40), not equal to it. Because the test shows that when the actual sent packet length = the maximum packet length specified by the descriptor, the host will not submit the received data to the software immediately (unknown reason).
     .DEBUG              ( DEBUG            )
 ) usbfs_core_i (
     .rstn               ( rstn             ),
@@ -113,18 +113,18 @@ usbfs_core_top  #(
     .sof                (                  ),
     .ep00_setup_cmd     (                  ),
     .ep00_resp_idx      (                  ),
-    .ep00_resp          ( '0               ),
+    .ep00_resp          ( 8'h0             ),
     .ep81_data          ( in_data          ),
     .ep81_valid         ( in_valid         ),
     .ep81_ready         ( in_ready         ),
-    .ep82_data          ( '0               ),
-    .ep82_valid         ( '0               ),
+    .ep82_data          ( 8'h0             ),
+    .ep82_valid         ( 1'b0             ),
     .ep82_ready         (                  ),
-    .ep83_data          ( '0               ),
-    .ep83_valid         ( '0               ),
+    .ep83_data          ( 8'h0             ),
+    .ep83_valid         ( 1'b0             ),
     .ep83_ready         (                  ),
-    .ep84_data          ( '0               ),
-    .ep84_valid         ( '0               ),
+    .ep84_data          ( 8'h0             ),
+    .ep84_valid         ( 1'b0             ),
     .ep84_ready         (                  ),
     .ep01_data          ( recv_data        ),
     .ep01_valid         ( recv_valid       ),
