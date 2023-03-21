@@ -87,6 +87,7 @@ module usbfs_transaction #(
 );
 
 
+
 initial {tp_sta, tp_pid, tp_byte, tp_fin_n} = '0;
 initial {sot, sof} = '0;
 initial ep00_setup_cmd = '0;
@@ -95,6 +96,7 @@ initial {ep01_data, ep01_valid} = '0;
 initial {ep02_data, ep02_valid} = '0;
 initial {ep03_data, ep03_valid} = '0;
 initial {ep04_data, ep04_valid} = '0;
+
 
 
 localparam [3:0] PID_OUT    = 4'h1;
@@ -111,12 +113,18 @@ localparam [3:0] PID_NAK    = 4'hA;
 //localparam [3:0] PID_NYET   = 4'h6;  // unused in USB 1.1
 
 
+
+
+
 reg [ 9:0] tp_cnt = '0;
+
 reg [ 3:0] endp = '0;
+
 reg        ep00_setup = '0;
 reg [15:0] ep00_total = '0;
 reg [ 7:0] ep00_data = '0;
 reg        ep00_data1 = '0;
+
 reg        ep81_data1 = '0;
 reg        ep82_data1 = '0;
 reg        ep83_data1 = '0;
@@ -141,79 +149,90 @@ always @ (posedge clk or negedge rstn)
         ep00_resp_idx <= '0;
     end else begin
         tp_sta <= 1'b0;
-        if(rp_fin & rp_okay) begin                                                 // recv a packet
-            if         (rp_pid == PID_SETUP) begin                                 //   recv SETUP token
-                endp <= rp_endp;                                                   //
-                ep00_setup <= 1'b1;                                                //
-                ep00_data1 <= 1'b1;                                                //
-            end else if(rp_pid == PID_OUT) begin                                   //   recv OUT token
-                endp <= rp_endp;                                                   //
-                ep00_setup <= 1'b0;                                                //
-            end else if(rp_pid == PID_IN) begin                                    //   recv IN token
-                endp <= rp_endp;                                                   //
-                ep00_setup <= 1'b0;                                                //
-                tp_sta <= 1'b1;                                                    //
-                tp_pid <= PID_NAK;                                                 //     send NAK by default
-                tp_cnt <= '0;                                                      //     send len = 0 by default
-                if(rp_endp == 4'd0) begin                                          //     if IN ENDP=0
-                    tp_pid <= ep00_data1 ? PID_DATA1 : PID_DATA0;                  //       send DATA1 or DATA0
-                    ep00_data1 <= ~ep00_data1;                                     //       DATA0/1 flop
-                    if(ep00_total >= {8'h0,EP00_MAXPKTSIZE}) begin                 //
-                        tp_cnt <= {2'h0, EP00_MAXPKTSIZE};                         //
-                        ep00_total <= ep00_total - {8'h0,EP00_MAXPKTSIZE};         //
-                    end else begin                                                 //
-                        tp_cnt <= {2'h0, ep00_total[7:0]};                         //
-                        ep00_total <= '0;                                          //
-                    end                                                            //
-                end else if(rp_endp == 4'd1) begin                                 //     if IN ENDP=1
-                    if(ep81_valid) begin                                           //
+        if(rp_fin & rp_okay) begin                                                                   // recv a packet
+            if         (rp_pid == PID_SETUP) begin                                                   //   recv SETUP token
+                endp <= rp_endp;                                                                     //
+                if (rp_endp == 4'd0) begin                                                           //
+                    ep00_setup <= 1'b1;                                                              //
+                    ep00_data1 <= 1'b1;                                                              //
+                end                                                                                  //
+            end else if(rp_pid == PID_OUT) begin                                                     //   recv OUT token
+                endp <= rp_endp;                                                                     //
+                if (rp_endp == 4'd0)                                                                 //
+                    ep00_setup <= 1'b0;                                                              //
+            end else if(rp_pid == PID_IN) begin                                                      //   recv IN token
+                endp <= rp_endp;                                                                     //
+                tp_sta <= 1'b1;                                                                      //
+                tp_pid <= PID_NAK;                                                                   //     send NAK by default
+                tp_cnt <= '0;                                                                        //     send len = 0 by default
+                if(rp_endp == 4'd0) begin                                                            //     if IN ENDP=0
+                    ep00_setup <= 1'b0;                                                              //
+                    tp_pid <= ep00_data1 ? PID_DATA1 : PID_DATA0;                                    //       send DATA1 or DATA0
+                    if(ep00_total >= {8'h0,EP00_MAXPKTSIZE}) begin                                   //
+                        tp_cnt <= {2'h0, EP00_MAXPKTSIZE};                                           //
+                        ep00_total <= ep00_total - {8'h0,EP00_MAXPKTSIZE};                           //
+                    end else begin                                                                   //
+                        tp_cnt <= {2'h0, ep00_total[7:0]};                                           //
+                        ep00_total <= '0;                                                            //
+                    end                                                                              //
+                end else if(rp_endp == 4'd1) begin                                                   //     if IN ENDP=1
+                    if(ep81_valid) begin                                                             //
                         tp_pid <= (ep81_data1 && !EP81_ISOCHRONOUS) ? PID_DATA1 : PID_DATA0;
-                        ep81_data1 <= ~ep81_data1;                                 //       DATA0/1 flop
-                        tp_cnt <= EP81_MAXPKTSIZE;                                 //
-                    end                                                            //
-                end else if(rp_endp == 4'd2) begin                                 //     if IN ENDP=2
-                    if(ep82_valid) begin                                           //
+                        tp_cnt <= EP81_MAXPKTSIZE;                                                   //
+                    end                                                                              //
+                end else if(rp_endp == 4'd2) begin                                                   //     if IN ENDP=2
+                    if(ep82_valid) begin                                                             //
                         tp_pid <= (ep82_data1 && !EP82_ISOCHRONOUS) ? PID_DATA1 : PID_DATA0;
-                        ep82_data1 <= ~ep82_data1;                                 //       DATA0/1 flop
-                        tp_cnt <= EP82_MAXPKTSIZE;                                 //
-                    end                                                            //
-                end else if(rp_endp == 4'd3) begin                                 //     if IN ENDP=3
-                    if(ep83_valid) begin                                           //
+                        tp_cnt <= EP82_MAXPKTSIZE;                                                   //
+                    end                                                                              //
+                end else if(rp_endp == 4'd3) begin                                                   //     if IN ENDP=3
+                    if(ep83_valid) begin                                                             //
                         tp_pid <= (ep83_data1 && !EP83_ISOCHRONOUS) ? PID_DATA1 : PID_DATA0;
-                        ep83_data1 <= ~ep83_data1;                                 //       DATA0/1 flop
-                        tp_cnt <= EP83_MAXPKTSIZE;                                 //
-                    end                                                            //
-                end else if(rp_endp == 4'd4) begin                                 //     if IN ENDP=4
-                    if(ep84_valid) begin                                           //
+                        tp_cnt <= EP83_MAXPKTSIZE;                                                   //
+                    end                                                                              //
+                end else if(rp_endp == 4'd4) begin                                                   //     if IN ENDP=4
+                    if(ep84_valid) begin                                                             //
                         tp_pid <= (ep84_data1 && !EP84_ISOCHRONOUS) ? PID_DATA1 : PID_DATA0;
-                        ep84_data1 <= ~ep84_data1;                                 //       DATA0/1 flop
-                        tp_cnt <= EP84_MAXPKTSIZE;                                 //
-                    end                                                            //
-                end                                                                //
-            end else if(rp_pid == PID_DATA0 || rp_pid == PID_DATA1) begin          //   recv packet is DATA0 or DATA1
-                ep00_total <= '0;                                                  //
-                if(endp == 4'd0 && ep00_setup) begin                               //     if last token = SETUP, device has received a SETUP command
-                    if(ep00_setup_cmd[7])                                          //
-                        ep00_total <= ep00_setup_cmd[63:48];                       //
-                    ep00_resp_idx <= '0;                                           //
-                end                                                                //
-                tp_pid <= PID_ACK;                                                 //
-                if( (endp == 4'd1 && EP01_ISOCHRONOUS) ||                          //
-                    (endp == 4'd2 && EP02_ISOCHRONOUS) ||                          //
-                    (endp == 4'd3 && EP03_ISOCHRONOUS) ||                          //
-                    (endp == 4'd4 && EP04_ISOCHRONOUS)   )                         //     if this recv data packet corresponds to a ISOCHRONOUS OUT endpoint.
-                    tp_sta <= 1'b0;                                                //       do not send ACK.
-                else                                                               //     otherwise,
-                    tp_sta <= 1'b1;                                                //       send ACK
-            end                                                                    //
-        end                                                                        //
+                        tp_cnt <= EP84_MAXPKTSIZE;                                                   //
+                    end                                                                              //
+                end                                                                                  //
+            end else if( rp_pid == PID_ACK ) begin                                                   //    recv ACK handshake
+                if      (endp == 4'd0)
+                    ep00_data1 <= ~ep00_data1;                                                       //       DATA0/1 flop
+                else if (endp == 4'd1)
+                    ep81_data1 <= ~ep81_data1 && !EP81_ISOCHRONOUS;                                  //       DATA0/1 flop
+                else if (endp == 4'd2)
+                    ep82_data1 <= ~ep82_data1 && !EP82_ISOCHRONOUS;                                  //       DATA0/1 flop
+                else if (endp == 4'd3)
+                    ep83_data1 <= ~ep83_data1 && !EP83_ISOCHRONOUS;                                  //       DATA0/1 flop
+                else if (endp == 4'd4)
+                    ep84_data1 <= ~ep84_data1 && !EP84_ISOCHRONOUS;                                  //       DATA0/1 flop
+            end else if(rp_pid == PID_DATA0 || rp_pid == PID_DATA1) begin                            //   recv packet is DATA0 or DATA1
+                if(endp == 4'd0) begin                                                               //     previous token (OUT or setup) is endpoint 00 
+                    ep00_total <= '0;                                                                //
+                    if (ep00_setup) begin                                                            //       if last token = SETUP, device has received a 8byte SETUP command
+                        if (ep00_setup_cmd[7])                                                       //
+                            ep00_total <= ep00_setup_cmd[63:48];                                     //
+                        ep00_resp_idx <= '0;                                                         //
+                    end
+                end                                                                                  //
+                tp_sta <= 1'b1;                                                                      //       send ACK by default
+                tp_pid <= PID_ACK;                                                                   //       send ACK by default
+                if( (endp == 4'd1 && EP01_ISOCHRONOUS) ||                                            //
+                    (endp == 4'd2 && EP02_ISOCHRONOUS) ||                                            //
+                    (endp == 4'd3 && EP03_ISOCHRONOUS) ||                                            //
+                    (endp == 4'd4 && EP04_ISOCHRONOUS)   )                                           //     if this recv data packet corresponds to a ISOCHRONOUS OUT endpoint.
+                    tp_sta <= 1'b0;                                                                  //       do not send ACK.
+            end                                                                                      //
+        end                                                                                          //
         if(tp_byte_req) begin
             tp_fin_n <= 1'b0;
             if( tp_cnt != '0 && ep8x_valid[endp] ) begin
                 tp_cnt <= tp_cnt - 10'd1;
                 tp_fin_n <= 1'b1;
                 tp_byte <= ep8x_data[endp];
-                ep00_resp_idx <= ep00_resp_idx + 9'd1;
+                if (endp == 4'd0)
+                    ep00_resp_idx <= ep00_resp_idx + 9'd1;
             end
         end
     end
@@ -264,19 +283,19 @@ always @ (posedge clk or negedge rstn)
     end else begin
         {ep01_valid, ep02_valid, ep03_valid, ep04_valid} <= '0;
         if(rp_byte_en) begin
-            if(endp == 4'd0) begin               // endpoint 0 OUT -> SETUP command
+            if(endp == 4'd0) begin                                        // endpoint 0 OUT -> SETUP command
                 if(ep00_setup)
                     ep00_setup_cmd <= {rp_byte, ep00_setup_cmd[63:8]};    // save 8 bytes SETUP command
-            end else if(endp == 4'd1) begin      // endpoint 01 OUT
+            end else if(endp == 4'd1) begin                               // endpoint 01 OUT
                 ep01_data  <= rp_byte;
                 ep01_valid <= 1'b1;
-            end else if(endp == 4'd2) begin      // endpoint 02 OUT
+            end else if(endp == 4'd2) begin                               // endpoint 02 OUT
                 ep02_data  <= rp_byte;
                 ep02_valid <= 1'b1;
-            end else if(endp == 4'd3) begin      // endpoint 03 OUT
+            end else if(endp == 4'd3) begin                               // endpoint 03 OUT
                 ep03_data  <= rp_byte;
                 ep03_valid <= 1'b1;
-            end else if(endp == 4'd4) begin      // endpoint 04 OUT
+            end else if(endp == 4'd4) begin                               // endpoint 04 OUT
                 ep04_data  <= rp_byte;
                 ep04_valid <= 1'b1;
             end
