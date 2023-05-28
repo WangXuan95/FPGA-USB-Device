@@ -2,33 +2,33 @@
 //--------------------------------------------------------------------------------------------------------
 // Module  : usbfs_core_top
 // Type    : synthesizable, IP's top
-// Standard: SystemVerilog 2005 (IEEE1800-2005)
+// Standard: Verilog 2001 (IEEE1364-2001)
 // Function: A USB Full Speed (12Mbps) device controller
 //--------------------------------------------------------------------------------------------------------
 
 module usbfs_core_top #(
-    parameter logic [7:0] DESCRIPTOR_DEVICE [ 18] = '{ 18{'0}},
-    parameter logic [7:0] DESCRIPTOR_STR1   [ 64] = '{ 64{'0}},
-    parameter logic [7:0] DESCRIPTOR_STR2   [ 64] = '{ 64{'0}},
-    parameter logic [7:0] DESCRIPTOR_STR3   [ 64] = '{ 64{'0}},
-    parameter logic [7:0] DESCRIPTOR_STR4   [ 64] = '{ 64{'0}},
-    parameter logic [7:0] DESCRIPTOR_STR5   [ 64] = '{ 64{'0}},
-    parameter logic [7:0] DESCRIPTOR_STR6   [ 64] = '{ 64{'0}},
-    parameter logic [7:0] DESCRIPTOR_CONFIG [512] = '{512{'0}},
-    parameter logic [7:0] EP00_MAXPKTSIZE  = 8'h20,              // endpoint 00 (control endpoint) packet byte length.
-    parameter logic [9:0] EP81_MAXPKTSIZE  = 10'h20,             // endpoint 81 packet byte length. If it is a ISOCHRONOUS endpoint, MAXPKTSIZE can be 10'h1~10'h3FF, otherwise MAXPKTSIZE can only be 10'h8, 10'h10, 10'h20, or 10'h40.
-    parameter logic [9:0] EP82_MAXPKTSIZE  = 10'h20,             // endpoint 82 packet byte length. If it is a ISOCHRONOUS endpoint, MAXPKTSIZE can be 10'h1~10'h3FF, otherwise MAXPKTSIZE can only be 10'h8, 10'h10, 10'h20, or 10'h40.
-    parameter logic [9:0] EP83_MAXPKTSIZE  = 10'h20,             // endpoint 83 packet byte length. If it is a ISOCHRONOUS endpoint, MAXPKTSIZE can be 10'h1~10'h3FF, otherwise MAXPKTSIZE can only be 10'h8, 10'h10, 10'h20, or 10'h40.
-    parameter logic [9:0] EP84_MAXPKTSIZE  = 10'h20,             // endpoint 84 packet byte length. If it is a ISOCHRONOUS endpoint, MAXPKTSIZE can be 10'h1~10'h3FF, otherwise MAXPKTSIZE can only be 10'h8, 10'h10, 10'h20, or 10'h40.
-    parameter             EP81_ISOCHRONOUS = 0,                  // endpoint 81 is ISOCHRONOUS ?
-    parameter             EP82_ISOCHRONOUS = 0,                  // endpoint 82 is ISOCHRONOUS ?
-    parameter             EP83_ISOCHRONOUS = 0,                  // endpoint 83 is ISOCHRONOUS ?
-    parameter             EP84_ISOCHRONOUS = 0,                  // endpoint 84 is ISOCHRONOUS ?
-    parameter             EP01_ISOCHRONOUS = 0,                  // endpoint 01 is ISOCHRONOUS ?
-    parameter             EP02_ISOCHRONOUS = 0,                  // endpoint 02 is ISOCHRONOUS ?
-    parameter             EP03_ISOCHRONOUS = 0,                  // endpoint 03 is ISOCHRONOUS ?
-    parameter             EP04_ISOCHRONOUS = 0,                  // endpoint 04 is ISOCHRONOUS ?
-    parameter             DEBUG            = "FALSE"             // whether to output debug info, "TRUE" or "FALSE"
+    parameter [ 18*8-1:0] DESCRIPTOR_DEVICE = 0,                  // 18 byte capacity
+    parameter [ 64*8-1:0] DESCRIPTOR_STR1   = 0,                  // 64 byte capacity
+    parameter [ 64*8-1:0] DESCRIPTOR_STR2   = 0,                  // 64 byte capacity
+    parameter [ 64*8-1:0] DESCRIPTOR_STR3   = 0,                  // 64 byte capacity
+    parameter [ 64*8-1:0] DESCRIPTOR_STR4   = 0,                  // 64 byte capacity
+    parameter [ 64*8-1:0] DESCRIPTOR_STR5   = 0,                  // 64 byte capacity
+    parameter [ 64*8-1:0] DESCRIPTOR_STR6   = 0,                  // 64 byte capacity
+    parameter [512*8-1:0] DESCRIPTOR_CONFIG = 0,                  // 512 byte capacity
+    parameter       [7:0] EP00_MAXPKTSIZE   = 8'h20,              // endpoint 00 (control endpoint) packet byte length.
+    parameter       [9:0] EP81_MAXPKTSIZE   = 10'h20,             // endpoint 81 packet byte length. If it is a ISOCHRONOUS endpoint, MAXPKTSIZE can be 10'h1~10'h3FF, otherwise MAXPKTSIZE can only be 10'h8, 10'h10, 10'h20, or 10'h40.
+    parameter       [9:0] EP82_MAXPKTSIZE   = 10'h20,             // endpoint 82 packet byte length. If it is a ISOCHRONOUS endpoint, MAXPKTSIZE can be 10'h1~10'h3FF, otherwise MAXPKTSIZE can only be 10'h8, 10'h10, 10'h20, or 10'h40.
+    parameter       [9:0] EP83_MAXPKTSIZE   = 10'h20,             // endpoint 83 packet byte length. If it is a ISOCHRONOUS endpoint, MAXPKTSIZE can be 10'h1~10'h3FF, otherwise MAXPKTSIZE can only be 10'h8, 10'h10, 10'h20, or 10'h40.
+    parameter       [9:0] EP84_MAXPKTSIZE   = 10'h20,             // endpoint 84 packet byte length. If it is a ISOCHRONOUS endpoint, MAXPKTSIZE can be 10'h1~10'h3FF, otherwise MAXPKTSIZE can only be 10'h8, 10'h10, 10'h20, or 10'h40.
+    parameter             EP81_ISOCHRONOUS  = 0,                  // endpoint 81 is ISOCHRONOUS ?
+    parameter             EP82_ISOCHRONOUS  = 0,                  // endpoint 82 is ISOCHRONOUS ?
+    parameter             EP83_ISOCHRONOUS  = 0,                  // endpoint 83 is ISOCHRONOUS ?
+    parameter             EP84_ISOCHRONOUS  = 0,                  // endpoint 84 is ISOCHRONOUS ?
+    parameter             EP01_ISOCHRONOUS  = 0,                  // endpoint 01 is ISOCHRONOUS ?
+    parameter             EP02_ISOCHRONOUS  = 0,                  // endpoint 02 is ISOCHRONOUS ?
+    parameter             EP03_ISOCHRONOUS  = 0,                  // endpoint 03 is ISOCHRONOUS ?
+    parameter             EP04_ISOCHRONOUS  = 0,                  // endpoint 04 is ISOCHRONOUS ?
+    parameter             DEBUG             = "FALSE"             // whether to output debug info, "TRUE" or "FALSE"
 ) (
     input  wire        rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset)
     input  wire        clk,           // 60MHz is required
@@ -80,7 +80,9 @@ module usbfs_core_top #(
 );
 
 
-initial {usb_dp_pull, usb_rstn} = '0;
+
+initial usb_dp_pull = 1'b0;
+initial usb_rstn    = 1'b0;
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 // USB driving signals
@@ -130,22 +132,24 @@ wire        tp_fin_n;
 // USB reset control (device reset when rstn=0 and maintain for 2000ms, host reset when dp=dn=0 for 5us)
 //-------------------------------------------------------------------------------------------------------------------------------------
 localparam RESET_CYCLES = 120000000;  // 2000ms
+
 reg  [31:0] usb_rstn_cnt = 0;
+
 always @ (posedge clk or negedge rstn)
-    if(~rstn) begin
+    if (~rstn) begin
         usb_dp_pull <= 1'b0;
         usb_rstn <= 1'b0;
         usb_rstn_cnt <= 0;
     end else begin
-        if(usb_rstn_cnt < RESET_CYCLES) begin
+        if (usb_rstn_cnt < RESET_CYCLES) begin
             usb_dp_pull <= 1'b0;
             usb_rstn <= 1'b0;
             usb_rstn_cnt <= usb_rstn_cnt + 1;
-        end else if(usb_dp != usb_dn) begin
+        end else if (usb_dp != usb_dn) begin
             usb_dp_pull <= 1'b1;
             usb_rstn <= 1'b1;
             usb_rstn_cnt <= RESET_CYCLES + 300;
-        end else if(usb_rstn_cnt > RESET_CYCLES) begin
+        end else if (usb_rstn_cnt > RESET_CYCLES) begin
             usb_dp_pull <= 1'b1;
             usb_rstn <= 1'b1;
             usb_rstn_cnt <= usb_rstn_cnt - 1;
@@ -158,7 +162,7 @@ always @ (posedge clk or negedge rstn)
 
 
 //-------------------------------------------------------------------------------------------------------------------------------------
-// USB D+ and D- driver
+// USB D+ and D- tri-state driver
 //-------------------------------------------------------------------------------------------------------------------------------------
 assign usb_dp = usb_oe ? usb_dp_tx : 1'bz;
 assign usb_dn = usb_oe ? usb_dn_tx : 1'bz;
@@ -168,7 +172,7 @@ assign usb_dn = usb_oe ? usb_dn_tx : 1'bz;
 //-------------------------------------------------------------------------------------------------------------------------------------
 // USB bit-level
 //-------------------------------------------------------------------------------------------------------------------------------------
-usbfs_bitlevel usbfs_bitlevel_i (
+usbfs_bitlevel u_usbfs_bitlevel (
     .rstn               ( usb_rstn           ),
     .clk                ( clk                ),
     .usb_oe             ( usb_oe             ),
@@ -191,7 +195,7 @@ usbfs_bitlevel usbfs_bitlevel_i (
 //-------------------------------------------------------------------------------------------------------------------------------------
 // USB packet-level RX to bit-level RX
 //-------------------------------------------------------------------------------------------------------------------------------------
-usbfs_packet_rx usbfs_packet_rx_i (
+usbfs_packet_rx u_usbfs_packet_rx (
     .rstn               ( usb_rstn           ),
     .clk                ( clk                ),
     .rx_sta             ( rx_sta             ),
@@ -211,7 +215,7 @@ usbfs_packet_rx usbfs_packet_rx_i (
 //-------------------------------------------------------------------------------------------------------------------------------------
 // USB packet-level TX to bit-level TX
 //-------------------------------------------------------------------------------------------------------------------------------------
-usbfs_packet_tx usbfs_packet_tx_i (
+usbfs_packet_tx u_usbfs_packet_tx (
     .rstn               ( usb_rstn           ),
     .clk                ( clk                ),
     .tp_sta             ( tp_sta             ),
@@ -252,7 +256,7 @@ usbfs_transaction #(
     .EP02_ISOCHRONOUS   ( EP02_ISOCHRONOUS   ),
     .EP03_ISOCHRONOUS   ( EP03_ISOCHRONOUS   ),
     .EP04_ISOCHRONOUS   ( EP04_ISOCHRONOUS   )
-) usbfs_transaction_i (
+) u_usbfs_transaction (
     .rstn               ( usb_rstn           ),
     .clk                ( clk                ),
     .rp_pid             ( rp_pid             ),
@@ -302,7 +306,7 @@ usbfs_transaction #(
 generate
 if (DEBUG == "TRUE") begin
 
-usbfs_debug_monitor usbfs_debug_monitor_i (
+usbfs_debug_monitor u_usbfs_debug_monitor (
     .rstn               ( usb_rstn           ),
     .clk                ( clk                ),
     .rp_pid             ( rp_pid             ),
@@ -322,7 +326,7 @@ usbfs_debug_monitor usbfs_debug_monitor_i (
 usbfs_debug_uart_tx #(
     .CLK_DIV            ( 521                ),   // 60MHz/521 = 115200
     .ASIZE              ( 14                 )    // buffer size = 2^14=16384 bytes
-) usbfs_debug_uart_tx_i (
+) u_usbfs_debug_uart_tx (
     .rstn               ( usb_rstn           ),
     .clk                ( clk                ),
     .tx_data            ( debug_data         ),
@@ -334,7 +338,7 @@ usbfs_debug_uart_tx #(
 end else begin
 
 assign debug_en = 1'b0;
-assign debug_data = '0;
+assign debug_data = 8'h0;
 assign debug_uart_tx = 1'b1;    // print nothing on UART
 
 end

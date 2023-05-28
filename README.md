@@ -1,4 +1,4 @@
-![语言](https://img.shields.io/badge/语言-systemverilog_(IEEE1800_2005)-CAD09D.svg) ![部署](https://img.shields.io/badge/部署-quartus-blue.svg) ![部署](https://img.shields.io/badge/部署-vivado-FF1010.svg)
+![语言](https://img.shields.io/badge/语言-verilog_(IEEE1364_2001)-9A90FD.svg) ![仿真](https://img.shields.io/badge/仿真-iverilog-green.svg) ![部署](https://img.shields.io/badge/部署-quartus-blue.svg) ![部署](https://img.shields.io/badge/部署-vivado-FF1010.svg)
 
 USB 1.1 device 控制器。可在 FPGA 上实现各种 USB 设备。比如 USB扬声器和麦克风、USB摄像头、U盘、USB键盘、USB串口 。
 
@@ -12,7 +12,7 @@ USB 是最常用的外设通信总线，用于实现各种功能的外设。为�
 本库的特点：
 
 - 纯 RTL 实现 (SystemVerilog-2005)，适用于 Xilinx 、Altera 等各种型号的 FPGA 。
-- 所需的电路非常简单，除了FPGA外，只需3个FPGA引脚，1个电阻，1个USB接口座（见[电路连接](#circuit)）
+- 所需的电路非常简单，除了FPGA外，**只需3个FPGA引脚，1个电阻，1个USB接口座**（见[电路连接](#circuit)）
 
 如果你不熟悉 USB 协议栈，但想快速实现某种 USB 设备，可以使用我封装的一些 USB 功能：
 
@@ -48,18 +48,23 @@ USB 是最常用的外设通信总线，用于实现各种功能的外设。为�
 
 我测试了这些设备在不同操作系统上的兼容性，如下表。
 
-|     兼容性测试     |     Windows 10     | Linux Ubuntu 18.04 |    macOS 10.15     |
-| :----------------: | :----------------: | :----------------: | :----------------: |
-|    **USB音频**     | :heavy_check_mark: |     :warning:      | :heavy_check_mark: |
-|   **USB摄像头**    | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
-|      **U盘**       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-|    **USB键盘**     | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-|   **USB-Serial**   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| **USB-Serial-2ch** | :heavy_check_mark: |     :warning:      | :heavy_check_mark: |
+|     兼容性测试     |     Windows 10     |          Linux Ubuntu 18.04          |    macOS 10.15     |
+| :----------------: | :----------------: | :----------------------------------: | :----------------: |
+|    **USB音频**     | :heavy_check_mark: | :heavy_check_mark: (不识别bug已解决) | :heavy_check_mark: |
+|   **USB摄像头**    | :heavy_check_mark: |          :heavy_check_mark:          |        :x:         |
+|      **U盘**       | :heavy_check_mark: |          :heavy_check_mark:          | :heavy_check_mark: |
+|    **USB键盘**     | :heavy_check_mark: |          :heavy_check_mark:          | :heavy_check_mark: |
+|   **USB-Serial**   | :heavy_check_mark: |          :heavy_check_mark:          | :heavy_check_mark: |
+| **USB-Serial-2ch** | :heavy_check_mark: | :heavy_check_mark: (不识别bug已解决) | :heavy_check_mark: |
 
-> :warning: USB 复合设备 (USB composite device) 可以将多个 USB 功能组合起来。但目前我实现的 USB 复合设备中，只有其中的第一个功能会被 Linux 系统识别。例如这里 USB 音频设备是扬声器+麦克风的复合设备，Linux 能识别其中的扬声器，而不能识别麦克风。原因未知，留待后续解决。
->
 > :x: macOS 能识别我的 USB 摄像头设备，但无法读出视频，原因未知，留待后续解决。
+
+ 　
+
+### 特别鸣谢
+
+- 感谢 [github.com/xiaowuzxc](https://github.com/xiaowuzxc) 提交的 USB 扬声器的代码。本人后来将其拓展为现在的 USB音频 (扬声器+麦克风)
+- 感谢 \*\*\*\*\*8125@qq.com 解决了 USB-Serial-2ch 中有一个通道不识别的问题。
 
  　
 
@@ -118,25 +123,25 @@ USB 具有 `VBUS`, `GND`, `USB_D-`, `USB_D+` 这4根线。以 USB Type B 连接�
 
 |                  文件夹                  |          文件名          | 说明                                                         |
 | :--------------------------------------: | :----------------------: | :----------------------------------------------------------- |
-| [RTL/fpga_examples](./RTL/fpga_examples) |  fpga_top_usb_audio.sv   | 把 usb_audio_top.sv 的扬声器和麦克风回环连接，扬声器的放音会被麦克风录到 |
-| [RTL/fpga_examples](./RTL/fpga_examples) |  fpga_top_usb_camera.sv  | 生成黑白条纹给 usb_camera_top.sv ，用照相机软件能看到这个黑白条纹 |
-| [RTL/fpga_examples](./RTL/fpga_examples) |   fpga_top_usb_disk.sv   | 用 usb_disk_top.sv 实现了 24 KB 的 FAT16 文件系统的 U盘      |
-| [RTL/fpga_examples](./RTL/fpga_examples) | fpga_top_usb_keyboard.sv | 每2秒生成一个按键信号给 usb_keyboard_top.sv                  |
-| [RTL/fpga_examples](./RTL/fpga_examples) |  fpga_top_usb_serial.sv  | 把 usb_serial_top.sv 的发送和接收回环连接，电脑上发送的字符会被回显 |
-| [RTL/fpga_examples](./RTL/fpga_examples) | fpga_top_usb_serial2.sv  | 把 usb_serial2_top.sv 的发送和接收回环连接，电脑上发送的字符会被回显 |
-|     [RTL/usb_class](./RTL/usb_class)     |     usb_audio_top.sv     | 复合设备，包括 2 个 USB Audio Class (UAC) ，实现 **USB扬声器+麦克风** |
-|     [RTL/usb_class](./RTL/usb_class)     |    usb_camera_top.sv     | USB Video Class (UVC) 实现 **USB摄像头**                     |
-|     [RTL/usb_class](./RTL/usb_class)     |     usb_disk_top.sv      | USB Mass Storage Class (USB-MSC) 实现 **U盘**                |
-|     [RTL/usb_class](./RTL/usb_class)     |   usb_keyboard_top.sv    | USB Human Interface Device Class (USB-HID) 实现 **USB键盘**  |
-|     [RTL/usb_class](./RTL/usb_class)     |    usb_serial_top.sv     | USB Communication Device Class (USB-CDC) 实现 **USB-Serial** |
-|     [RTL/usb_class](./RTL/usb_class)     |    usb_serial2_top.sv    | 复合设备，包含2个 USB-CDC ，实现 **双通道USB-Serial**        |
-|    [RTL/usbfs_core](./RTL/usbfs_core)    |  **usbfs_core_top.sv**   | USB device core 的顶层模块                                   |
-|    [RTL/usbfs_core](./RTL/usbfs_core)    |   usbfs_transaction.sv   | 实现 USB transaction-level，被 usbfs_core_top.sv 调用        |
-|    [RTL/usbfs_core](./RTL/usbfs_core)    |    usbfs_packet_rx.sv    | 实现 USB packet-level RX，被 usbfs_core_top.sv 调用          |
-|    [RTL/usbfs_core](./RTL/usbfs_core)    |    usbfs_packet_tx.sv    | 实现 USB packet-level TX，被 usbfs_core_top.sv 调用          |
-|    [RTL/usbfs_core](./RTL/usbfs_core)    |    usbfs_bitlevel.sv     | 实现 USB bit-level，被 usbfs_core_top.sv 调用                |
-|    [RTL/usbfs_core](./RTL/usbfs_core)    |  usbfs_debug_monitor.sv  | 收集调试信息（不干扰 USB 的功能），被 usbfs_core_top.sv 调用 |
-|    [RTL/usbfs_core](./RTL/usbfs_core)    |        uart_tx.sv        | 将调试信息转为一个 UART 信号，被 usbfs_core_top.sv 调用      |
+| [RTL/fpga_examples](./RTL/fpga_examples) |  fpga_top_usb_audio.v   | 把 usb_audio_top.v 的扬声器和麦克风回环连接，扬声器的放音会被麦克风录到 |
+| [RTL/fpga_examples](./RTL/fpga_examples) |  fpga_top_usb_camera.v  | 生成黑白条纹给 usb_camera_top.v ，用照相机软件能看到这个黑白条纹 |
+| [RTL/fpga_examples](./RTL/fpga_examples) |   fpga_top_usb_disk.v   | 用 usb_disk_top.v 实现了 24 KB 的 FAT16 文件系统的 U盘      |
+| [RTL/fpga_examples](./RTL/fpga_examples) | fpga_top_usb_keyboard.v | 每2秒生成一个按键信号给 usb_keyboard_top.v                  |
+| [RTL/fpga_examples](./RTL/fpga_examples) |  fpga_top_usb_serial.v  | 把 usb_serial_top.v 的发送和接收回环连接，电脑上发送的字符会被回显 |
+| [RTL/fpga_examples](./RTL/fpga_examples) | fpga_top_usb_serial2.v  | 把 usb_serial2_top.v 的发送和接收回环连接，电脑上发送的字符会被回显 |
+|     [RTL/usb_class](./RTL/usb_class)     |     usb_audio_top.v     | 复合设备，包括 2 个 USB Audio Class (UAC) ，实现 **USB扬声器+麦克风** |
+|     [RTL/usb_class](./RTL/usb_class)     |    usb_camera_top.v     | USB Video Class (UVC) 实现 **USB摄像头**                     |
+|     [RTL/usb_class](./RTL/usb_class)     |     usb_disk_top.v      | USB Mass Storage Class (USB-MSC) 实现 **U盘**                |
+|     [RTL/usb_class](./RTL/usb_class)     |   usb_keyboard_top.v    | USB Human Interface Device Class (USB-HID) 实现 **USB键盘**  |
+|     [RTL/usb_class](./RTL/usb_class)     |    usb_serial_top.v     | USB Communication Device Class (USB-CDC) 实现 **USB-Serial** |
+|     [RTL/usb_class](./RTL/usb_class)     |    usb_serial2_top.v    | 复合设备，包含2个 USB-CDC ，实现 **双通道USB-Serial**        |
+|    [RTL/usbfs_core](./RTL/usbfs_core)    |  **usbfs_core_top.v**   | USB device core 的顶层模块                                   |
+|    [RTL/usbfs_core](./RTL/usbfs_core)    |   usbfs_transaction.v   | 实现 USB transaction-level，被 usbfs_core_top.v 调用        |
+|    [RTL/usbfs_core](./RTL/usbfs_core)    |    usbfs_packet_rx.v    | 实现 USB packet-level RX，被 usbfs_core_top.v 调用          |
+|    [RTL/usbfs_core](./RTL/usbfs_core)    |    usbfs_packet_tx.v    | 实现 USB packet-level TX，被 usbfs_core_top.v 调用          |
+|    [RTL/usbfs_core](./RTL/usbfs_core)    |    usbfs_bitlevel.v     | 实现 USB bit-level，被 usbfs_core_top.v 调用                |
+|    [RTL/usbfs_core](./RTL/usbfs_core)    |  usbfs_debug_monitor.v  | 收集调试信息（不干扰 USB 的功能），被 usbfs_core_top.v 调用 |
+|    [RTL/usbfs_core](./RTL/usbfs_core)    |        uart_tx.v        | 将调试信息转为一个 UART 信号，被 usbfs_core_top.v 调用      |
 
 下文逐一介绍本库提供的每一个 USB class 的使用方法。最后会介绍 [基于 USB device core 的二次开发](#usbcore) 。
 
@@ -146,12 +151,12 @@ USB 具有 `VBUS`, `GND`, `USB_D-`, `USB_D+` 这4根线。以 USB Type B 连接�
 
 本库的 USB 音频设备实现了扬声器+麦克风。代码文件调用关系如下。请将这些文件加入 FPGA 工程，编译并烧录到 FPGA 。
 
-- RTL/fpga_examples/**fpga_top_usb_audio.sv**
-  - RTL/usb_class/**usb_audio_top.sv**
-    - RTL/usbfs_core/**usbfs_core_top.sv**
+- RTL/fpga_examples/**fpga_top_usb_audio.v**
+  - RTL/usb_class/**usb_audio_top.v**
+    - RTL/usbfs_core/**usbfs_core_top.v**
       - RTL/usbfs_core/里的其它.sv文件(不逐个列出了)
 
-> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_audio.sv** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
+> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_audio.v** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
 
 ### 测试
 
@@ -159,15 +164,15 @@ USB插入后，打开 Windows 设备管理器，应该能看到扬声器和麦�
 
 ![](./figures/ls_audio.png) 
 
-由于 **fpga_top_usb_audio.sv** 将扬声器和麦克风回环连接，因此扬声器的放音会被麦克风录到。为了测试，首先要选择该设备为音频输出设备：
+由于 **fpga_top_usb_audio.v** 将扬声器和麦克风回环连接，因此扬声器的放音会被麦克风录到。为了测试，首先要选择该设备为音频输出设备：
 
 ![](./figures/select_audio.png) 
 
-然后随便放一个音乐。再用任意录音软件或录视频软件 (比如 obstudio) ，选择 FPGA-USB-audio-input 作为输入麦克风，录一段音或视频。最后你会发现录到的音频和你放的音乐一样。
+然后随便放一个音乐。再用任意录音软件或录视频软件 (比如 obstudio) ，选择 FPGA-USB-audio 作为输入麦克风，录一段音或视频。最后你会发现录到的音频和你放的音乐一样。
 
 ### 应用开发
 
-你可以基于这个简单的例子开发更复杂的音频应用，为此你需要关注 **usb_audio_top.sv** 的模块接口，详见代码注释，这里不做赘述。
+你可以基于这个简单的例子开发更复杂的音频应用，为此你需要关注 **usb_audio_top.v** 的模块接口，详见代码注释，这里不做赘述。
 
  　
 
@@ -175,12 +180,12 @@ USB插入后，打开 Windows 设备管理器，应该能看到扬声器和麦�
 
 本库的 USB 摄像头设备的代码文件调用关系如下。请将这些文件加入 FPGA 工程，编译并烧录到 FPGA 。
 
-- RTL/fpga_examples/**fpga_top_usb_camera.sv**
-  - RTL/usb_class/**usb_camera_top.sv**
-    - RTL/usbfs_core/**usbfs_core_top.sv**
+- RTL/fpga_examples/**fpga_top_usb_camera.v**
+  - RTL/usb_class/**usb_camera_top.v**
+    - RTL/usbfs_core/**usbfs_core_top.v**
       - RTL/usbfs_core/里的其它.sv文件(不逐个列出了)
 
-> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_camera.sv** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
+> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_camera.v** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
 
 ### 测试
 
@@ -194,14 +199,14 @@ USB插入后，打开 Windows 设备管理器，应该能看到摄像头设备�
 
 ### 应用开发
 
-你可以基于这个简单的例子开发更复杂的摄像头应用，为此你需要关注 **usb_camera_top.sv** 的模块接口（详见代码注释）。
+你可以基于这个简单的例子开发更复杂的摄像头应用，为此你需要关注 **usb_camera_top.v** 的模块接口（详见代码注释）。
 
-#### usb_camera_top.sv 的参数
+#### usb_camera_top.v 的参数
 
 这里对关键的参数进行说明：
 
 ```verilog
-// parameters of usb_camera_top.sv
+// parameters of usb_camera_top.v
 parameter        FRAME_TYPE = "YUY2",    // "MONO" or "YUY2"
 parameter [13:0] FRAME_W    = 14'd320,   // video-frame width  in pixels, must be a even number
 parameter [13:0] FRAME_H    = 14'd240,   // video-frame height in pixels, must be a even number
@@ -229,18 +234,18 @@ Y00  U00  Y01  V00  Y02  U02  Y03  V02  Y10  U10  Y11  V10  Y12  U12  Y13  V12
 
 其中 (Y00, U00, V00) 是第0行第0列的像素；(Y01, U00, V00) 是第0行第1列的像素；(Y02, U02, V02) 是第0行第2列的像素；(Y03, U02, V02) 是第0行第3列的像素；……
 
-#### usb_camera_top.sv 的信号
+#### usb_camera_top.v 的信号
 
- **usb_camera_top.sv** 中用来从外界读取像素的信号是：
+ **usb_camera_top.v** 中用来从外界读取像素的信号是：
 
 ```verilog
-// pixel fetch signals of usb_camera_top.sv    start-of-frame |  frame data transmitting   | end-of-frame
+// pixel fetch signals of usb_camera_top.v    start-of-frame |  frame data transmitting   | end-of-frame
 output reg         vf_sof,                // 0000000001000000000000000000000000000000000000000000000000000    // vf_sof=1 indicate a start of video-frame
 output reg         vf_req,                // 0000000000000000010001000100010001000100010001000000000000000    // when vf_req=1, a byte of pixel data on vf_byte need to be valid
 input  wire [ 7:0] vf_byte,               //                                                                  // a byte of pixel data
 ```
 
- **usb_camera_top.sv** 会通过以上信号不断读取视频帧，并发送给 Host-PC 。在每个视频帧的开始， `vf_sof` 会出现一周期的高电平。然后 `vf_req` 会断续地出现 **N** 次高电平，其中 **N** 是视频帧的字节数，对于 `FRAME_TYPE="MONO"` ，**N**=帧宽度×帧高度；对于 `FRAME_TYPE="YUY2"` ，**N**=2×帧宽度×帧高度 。每当 `vf_req=1` 时，外界应该提供一个字节（像素数据）到 `vf_byte` 信号上，最晚应该在 `vf_req=1` 后的第4个时钟周期让 `vf_byte` 有效，并且保持有效直到下一次 `vf_req=1` 。
+ **usb_camera_top.v** 会通过以上信号不断读取视频帧，并发送给 Host-PC 。在每个视频帧的开始， `vf_sof` 会出现一周期的高电平。然后 `vf_req` 会断续地出现 **N** 次高电平，其中 **N** 是视频帧的字节数，对于 `FRAME_TYPE="MONO"` ，**N**=帧宽度×帧高度；对于 `FRAME_TYPE="YUY2"` ，**N**=2×帧宽度×帧高度 。每当 `vf_req=1` 时，外界应该提供一个字节（像素数据）到 `vf_byte` 信号上，最晚应该在 `vf_req=1` 后的第4个时钟周期让 `vf_byte` 有效，并且保持有效直到下一次 `vf_req=1` 。
 
 ### 帧率与性能
 
@@ -254,12 +259,12 @@ input  wire [ 7:0] vf_byte,               //                                    
 
 本库的 U盘设备的代码文件调用关系如下。请将这些文件加入 FPGA 工程，编译并烧录到 FPGA 。
 
-- RTL/fpga_examples/**fpga_top_usb_disk.sv**
-  - RTL/usb_class/**usb_disk_top.sv**
-    - RTL/usbfs_core/**usbfs_core_top.sv**
+- RTL/fpga_examples/**fpga_top_usb_disk.v**
+  - RTL/usb_class/**usb_disk_top.v**
+    - RTL/usbfs_core/**usbfs_core_top.v**
       - RTL/usbfs_core/里的其它.sv文件(不逐个列出了)
 
-> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_disk.sv** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
+> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_disk.v** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
 
 ### 测试
 
@@ -273,12 +278,12 @@ Windows 文件资源管理器中应该能看到这个硬盘，里面有一个文
 
 ### 应用开发
 
-你可以基于这个简单的例子开发更大或更复杂的 USB-disk ，为此你需要关注 **usb_disk_top.sv** 的模块接口（详见代码注释）。
+你可以基于这个简单的例子开发更大或更复杂的 USB-disk ，为此你需要关注 **usb_disk_top.v** 的模块接口（详见代码注释）。
 
 这里对其中关键的信号进行说明，包括：
 
 ```verilog
-// signals of usb_disk_top.sv
+// signals of usb_disk_top.v
 output reg  [40:0] mem_addr,      // byte address
 output reg         mem_wen,       // 1:write   0:read
 output reg  [ 7:0] mem_wdata,     // byte to write
@@ -292,7 +297,7 @@ input  wire [ 7:0] mem_rdata,     // byte to read
 
 该接口非常容易接到 FPGA 的 BRAM 上，这样我们就用 BRAM 实现了硬盘的存储空间。
 
-为了让 disk 能被识别为格式化好的硬盘，你可以给这个 BRAM 提供一个初始数据，里面包含一个文件系统。**fpga_top_usb_disk.sv** 里的 BRAM 就实现了一个总大小为 24KB 的 FAT16 文件系统。
+为了让 disk 能被识别为格式化好的硬盘，你可以给这个 BRAM 提供一个初始数据，里面包含一个文件系统。**fpga_top_usb_disk.v** 里的 BRAM 就实现了一个总大小为 24KB 的 FAT16 文件系统。
 
 > :warning: 文件系统是用来组织文件的数据结构，和文件本身一样也存储在硬盘里。制作方法比较复杂，不在这里赘述。如果需要制作定制的 U盘设备，可以通过 issue 联系本人。
 
@@ -302,12 +307,12 @@ input  wire [ 7:0] mem_rdata,     // byte to read
 
 本库的 USB 键盘设备的代码文件调用关系如下。请将这些文件加入 FPGA 工程，编译并烧录到 FPGA 。
 
-- RTL/fpga_examples/**fpga_top_usb_keyboard.sv**
-  - RTL/usb_class/**usb_keyboard_top.sv**
-    - RTL/usbfs_core/**usbfs_core_top.sv**
+- RTL/fpga_examples/**fpga_top_usb_keyboard.v**
+  - RTL/usb_class/**usb_keyboard_top.v**
+    - RTL/usbfs_core/**usbfs_core_top.v**
       - RTL/usbfs_core/里的其它.sv文件(不逐个列出了)
 
-> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_keyboard.sv** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
+> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_keyboard.v** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
 
 ### 测试
 
@@ -319,12 +324,12 @@ USB插入后，打开 Windows 设备管理器，应该能看到一个键盘设�
 
 ### 应用开发
 
-你可以基于这个简单的例子开发更复杂的键盘应用，为此你需要关注 **usb_keyboard_top.sv** 的模块接口（详见代码注释）。
+你可以基于这个简单的例子开发更复杂的键盘应用，为此你需要关注 **usb_keyboard_top.v** 的模块接口（详见代码注释）。
 
 这里的对其中用来发送按键信号的信号进行说明：
 
 ```verilog
-// signals of usb_keyboard_top.sv:
+// signals of usb_keyboard_top.v:
 input  wire [15:0] key_value,     // Indicates which key to press, NOT ASCII code! see https://www.usb.org/sites/default/files/hut1_21_0.pdf section 10.
 input  wire        key_request,   // when key_request=1 pulses, a key is pressed.
 ```
@@ -337,12 +342,12 @@ input  wire        key_request,   // when key_request=1 pulses, a key is pressed
 
 本库的 USB-Serial 设备的代码文件调用关系如下。请将这些文件加入 FPGA 工程，编译并烧录到 FPGA 。
 
-- RTL/fpga_examples/**fpga_top_usb_serial.sv**
-  - RTL/usb_class/**usb_serial_top.sv**
-    - RTL/usbfs_core/**usbfs_core_top.sv**
+- RTL/fpga_examples/**fpga_top_usb_serial.v**
+  - RTL/usb_class/**usb_serial_top.v**
+    - RTL/usbfs_core/**usbfs_core_top.v**
       - RTL/usbfs_core/里的其它.sv文件(不逐个列出了)
 
-> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_serial.sv** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
+> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_serial.v** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
 
 ### 测试
 
@@ -350,7 +355,7 @@ USB插入后，打开 Windows 设备管理器，应该能看到一个 USB-serial
 
 ![](./figures/ls_serial.png) 
 
-本例把 **usb_serial_top.sv** 收到的数据按照 ASCII 码把小写字母转换为大写字母，然后回环连接到发送接口。你可以在 Host-PC 上用 minicom, putty, HyperTerminal, 串口助手的软件来发送数据给 Serial Port ，发送的数据会被回显（其中小写字母转化为大写字母）。以串口助手为例，如下图。
+本例把 **usb_serial_top.v** 收到的数据按照 ASCII 码把小写字母转换为大写字母，然后回环连接到发送接口。你可以在 Host-PC 上用 minicom, putty, HyperTerminal, 串口助手的软件来发送数据给 Serial Port ，发送的数据会被回显（其中小写字母转化为大写字母）。以串口助手为例，如下图。
 
 ![](./figures/test_serial.png) 
 
@@ -358,12 +363,12 @@ USB插入后，打开 Windows 设备管理器，应该能看到一个 USB-serial
 
 ### 应用开发
 
-你可以基于这个简单的例子开发更复杂的 Serial-Port 通信应用，为此你需要关注 **usb_serial_top.sv** 的模块接口（详见代码注释）。
+你可以基于这个简单的例子开发更复杂的 Serial-Port 通信应用，为此你需要关注 **usb_serial_top.v** 的模块接口（详见代码注释）。
 
 这里对其中关键的信号进行说明，包括：
 
 ```verilog
-// signals of usb_serial_top.sv
+// signals of usb_serial_top.v
 // receive data (host-to-device)
 output wire [ 7:0] recv_data,     // received data byte
 output wire        recv_valid,    // when recv_valid=1 pulses, a data byte is received on recv_data
@@ -377,7 +382,7 @@ output wire        send_ready,    // send_ready handshakes with send_valid. send
 
 而 device-to-host 的信号方向相反，而且多出来了一个 `send_ready` 信号，`send_ready=0` 说明模块内部的发送缓冲区满了，暂时不能发送新的数据。 `send_ready`与 `send_valid` 构成握手信号，当用户需要发送一个字节时，应该让 `send_valid=1` ，同时让字节出现再 `send_data` 上。当 `send_valid=1 && send_ready=1` 时，该字节被成功送入发送缓存，用户就可以继而发送下一字节。该握手机制类似 AXI-stream 。
 
-**usb_serial_top.sv** 中有 1024 字节的发送缓存。如果需要发送的数据吞吐率不大，发送缓存永远不会满，也可也无视 `send_ready` 信号。然而，在数据吞吐率较大从而可能导致发送缓存满的情况下，如果无视 `send_ready=0`  的情况，可能导致部分数据丢失。
+**usb_serial_top.v** 中有 1024 字节的发送缓存。如果需要发送的数据吞吐率不大，发送缓存永远不会满，也可也无视 `send_ready` 信号。然而，在数据吞吐率较大从而可能导致发送缓存满的情况下，如果无视 `send_ready=0`  的情况，可能导致部分数据丢失。
 
  　
 
@@ -385,12 +390,12 @@ output wire        send_ready,    // send_ready handshakes with send_valid. send
 
 本库的双通道 USB-Serial 设备的代码文件调用关系如下。请将这些文件加入 FPGA 工程，编译并烧录到 FPGA 。
 
-- RTL/fpga_examples/**fpga_top_usb_serial2.sv**
-  - RTL/usb_class/**usb_serial2_top.sv**
-    - RTL/usbfs_core/**usbfs_core_top.sv**
+- RTL/fpga_examples/**fpga_top_usb_serial2.v**
+  - RTL/usb_class/**usb_serial2_top.v**
+    - RTL/usbfs_core/**usbfs_core_top.v**
       - RTL/usbfs_core/里的其它.sv文件(不逐个列出了)
 
-> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_serial2.sv** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
+> :warning: 本库的 USB core 需要 60MHz 的驱动时钟。**fpga_top_usb_serial2.v** 里调用了 Altera 的 altpll 原语来把晶振的 50MHz 时钟转为 60MHz 时钟。如果你的 FPGA 不是 Altera Cyclone IV ，请删掉 altpll 部分的代码，然后用对应的原语或 IP 核来生成 60MHz 时钟。例如对于 Xilinx FPGA ，可以使用 Clock Wizard IP 。
 
 ### 测试
 
@@ -402,23 +407,23 @@ USB插入后，打开 Windows 设备管理器，应该能看到2个 USB-serial �
 
 ### 应用开发
 
-你可以基于这个简单的例子开发更复杂的 Serial-Port 通信应用，为此你需要关注 **usb_serial2_top.sv** 的模块接口（详见代码注释），其用法与单通道的 USB-Serial 相同，只不过发送和接收接口都变成了双通道，这里不做赘述。
+你可以基于这个简单的例子开发更复杂的 Serial-Port 通信应用，为此你需要关注 **usb_serial2_top.v** 的模块接口（详见代码注释），其用法与单通道的 USB-Serial 相同，只不过发送和接收接口都变成了双通道，这里不做赘述。
 
  　
 
 # <span id="usbcore">Ⅸ 基于 USB device core 的二次开发</span>
 
-你可以使用 **usbfs_core_top.sv** 开发其它的 USB 设备，它提供：
+你可以使用 **usbfs_core_top.v** 开发其它的 USB 设备，它提供：
 
 - 自定义1个设备描述符(device descriptor)、1个配置描述符(configuration descriptor)、6个字符串描述符(string descriptor) 。
 - 除了 control endpoint (0x00) 外，提供 4 个 IN endpoint (0x81\~0x84) 、 4 个 OUT endpoint (0x01\~0x04) 。
 - 可选的调试输出接口 (debug interface)，通过一个额外的UART打印调试信息到电脑，可以看到 USB 数据包的通信过程。
 
-下文对 **usbfs_core_top.sv** 的参数和输入输出信号进行说明。
+下文对 **usbfs_core_top.v** 的参数和输入输出信号进行说明。
 
-### usbfs_core_top.sv 的参数
+### usbfs_core_top.v 的参数
 
-**usbfs_core_top.sv** 的参数如下表。
+**usbfs_core_top.v** 的参数如下表。
 
 | usbfs_core_top 的参数 | 类型                                    | 说明                                         |
 | --------------------- | --------------------------------------- | -------------------------------------------- |
@@ -447,21 +452,21 @@ USB插入后，打开 Windows 设备管理器，应该能看到2个 USB-serial �
 
 > :warning: 根据 USB 1.1 specification ，当一个 endpoint 是 isochronous 传输模式时，最大包大小可取 8\~1023 的任意值。当 endpoint 是 interrupt 或 bulk 传输模式时，最大包大小只能取 8, 16, 32, 或 64 。
 
-### usbfs_core_top.sv 的信号
+### usbfs_core_top.v 的信号
 
 #### 时钟与复位
 
 需要给 `clk` 信号提供 60MHz 的时钟：
 
 ```verilog
-// signals of usbfs_core_top.sv
+// signals of usbfs_core_top.v
 input  wire clk,           // 60MHz is required
 ```
 
 复位信号 `rstn` 在正常工作时应该取高电平，如果需要停止工作，可以让 `rstn` 取低电平，此时如果 USB 插在 Host-PC 上，Host-PC 会检测到 USB 被拔出。
 
 ```verilog
-// signals of usbfs_core_top.sv
+// signals of usbfs_core_top.v
 input  wire rstn,          // active-low reset, reset when rstn=0 (USB will unplug when reset)
 ```
 
@@ -470,7 +475,7 @@ input  wire rstn,          // active-low reset, reset when rstn=0 (USB will unpl
 以下3个信号需要引出到 FPGA 的引脚上，并按照 [电路连接方法](#circuit) 来连接到 USB 接口。
 
 ```verilog
-// signals of usbfs_core_top.sv
+// signals of usbfs_core_top.v
 // USB signals
 output reg  usb_dp_pull,   // connect to USB D+ by an 1.5k resistor
 inout       usb_dp,        // USB D+
@@ -480,7 +485,7 @@ inout       usb_dn,        // USB D-
 `usb_rstn` 信号指示了 USB 是否连接，高电平代表已连接；低电平代表未连接。未连接可能是有两种情况：要么USB线被从 Host 上拔出，要么 FPGA 侧主动进行复位（ `rstn=0` ）
 
 ```verilog
-// signals of usbfs_core_top.sv
+// signals of usbfs_core_top.v
 output reg  usb_rstn,      // 1: connected , 0: disconnected (when USB cable unplug, or when system reset (rstn=0))
 ```
 
@@ -489,7 +494,7 @@ output reg  usb_rstn,      // 1: connected , 0: disconnected (when USB cable unp
 当以下两个信号 `sot` 和 `sof` 出现一周期的高电平时，分别指示了 USB-transfer 和 USB-frame 的开始。其中 USB-transfer 是指一个 USB transfer 的全过程，包括 control transfer, interrupt transfer, bulk transfer 和 isochronous transfer 。而 USB-frame 起始于 USB-host 每 1ms 会发送一次的 SOF token ，可以用来指导  isochronous transfer 。
 
 ```verilog
-// signals of usbfs_core_top.sv
+// signals of usbfs_core_top.v
 output reg  sot,           // detect a start of USB-transfer
 output reg  sof,           // detect a start of USB-frame
 ```
@@ -499,7 +504,7 @@ output reg  sof,           // detect a start of USB-frame
 以下三个信号 `ep00_setup_cmd`, `ep00_resp_idx`, `ep00_resp` 提供了响应 control transfer 的接口。
 
 ```verilog
-// signals of usbfs_core_top.sv
+// signals of usbfs_core_top.v
 // endpoint 0 (control endpoint) command response here
 output wire [63:0] ep00_setup_cmd,
 output wire [ 8:0] ep00_resp_idx,
@@ -512,7 +517,7 @@ input  wire [ 7:0] ep00_resp,
 - Class-specific control transfer (`bmRequestType[6:5]=1`)
 - Vendor-specific control transfer (`bmRequestType[6:5]=2`)
 
-其中 Standard control transfer 用来响应描述符等数据，在 **usbfs_core_top.sv** 内部处理的，不需要开发者关心，开发者只需要用 parameter 指定好描述符即可。而 Class-specific control transfer 和 Vendor-specific control transfer 与具体设备的实现有关，开发者可以通过这三个信号响应它们。例如本库提供的 UVC 设备用它来响应 UVC Video Probe and Commit Controls ，而 HID 设备用它来响应 HID descriptor 。另外，有些简单的设备根本不需要 Class-specific control transfer 和 Vendor-specific control transfer ，则开发者可以无视这三个信号。
+其中 Standard control transfer 用来响应描述符等数据，在 **usbfs_core_top.v** 内部处理的，不需要开发者关心，开发者只需要用 parameter 指定好描述符即可。而 Class-specific control transfer 和 Vendor-specific control transfer 与具体设备的实现有关，开发者可以通过这三个信号响应它们。例如本库提供的 UVC 设备用它来响应 UVC Video Probe and Commit Controls ，而 HID 设备用它来响应 HID descriptor 。另外，有些简单的设备根本不需要 Class-specific control transfer 和 Vendor-specific control transfer ，则开发者可以无视这三个信号。
 
 当一个 control transfer 进行时，`ep00_setup_cmd` 信号上先出现 8 字节的 SETUP command 。然后 `ep00_resp_idx` 信号从 0 开始递增，代表了当前需要响应第几个字节。开发者需要随时将响应数据的第  `ep00_resp_idx`  个字节打在 `ep00_resp` 信号上。
 
@@ -540,7 +545,7 @@ always @ (posedge clk)
 - 在 `ep81_ready=1` 的下一个周期，如果 IN packet 发送结束，需要令 `ep81_valid=0` 。如果 IN packet 还有字节每发完，保持  `ep81_valid=1`  ，并将  `ep81_data`  更新为新的待发送的字节。
 
 ```verilog
-// signals of usbfs_core_top.sv
+// signals of usbfs_core_top.v
 // endpoint 0x81 data input (device-to-host)
 input  wire [ 7:0] ep81_data,     // IN data byte
 input  wire        ep81_valid,    // when device want to send a data byte, assert valid=1. the data byte will be sent successfully when valid=1 & ready=1.
@@ -566,7 +571,7 @@ output wire        ep84_ready,    // handshakes with valid. ready=1 indicates th
 例如，当 `ep01_valid` 出现一个周期的高电平时，说明收到了 OUT packet 中的一个字节，该字节出现在 `ep01_data` 上。另外，packet 的边界可以用之前讲过的 `sot` 信号来检测。
 
 ```verilog
-// signals of usbfs_core_top.sv
+// signals of usbfs_core_top.v
 // endpoint 0x84 data input (device-to-host)
 input  wire [ 7:0] ep84_data,     // IN data byte
 input  wire        ep84_valid,    // when device want to send a data byte, assert valid=1. the data byte will be sent successfully when valid=1 & ready=1.
@@ -590,7 +595,7 @@ output wire        ep04_valid,    // when out_valid=1 pulses, a data byte is rec
 以下信号用来向外界打印调试信息。调试信息是一个 ASCII 码字节流，是人类可读的。当 `debug_en=1`  时， `debug_data` 上出现一个字节。
 
 ```verilog
-// signals of usbfs_core_top.sv
+// signals of usbfs_core_top.v
 // debug output info, only for USB developers, can be ignored for normally use
 output wire        debug_en,      // when debug_en=1 pulses, a byte of debug info appears on debug_data
 output wire [ 7:0] debug_data,    // 
