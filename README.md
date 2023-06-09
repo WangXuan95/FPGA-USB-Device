@@ -11,7 +11,7 @@ USB 是最常用的外设通信总线，用于实现各种功能的外设。为�
 
 本库的特点：
 
-- 纯 RTL 实现 (SystemVerilog-2005)，适用于 Xilinx 、Altera 等各种型号的 FPGA 。
+- 纯 Verilog 实现，适用于 Xilinx 、Altera 等各种型号的 FPGA 。
 - 所需的电路非常简单，除了FPGA外，**只需3个FPGA引脚，1个电阻，1个USB接口座**（见[电路连接](#circuit)）
 
 如果你不熟悉 USB 协议栈，但想快速实现某种 USB 设备，可以使用我封装的一些 USB 功能：
