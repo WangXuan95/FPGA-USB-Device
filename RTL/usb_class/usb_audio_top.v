@@ -20,7 +20,7 @@ module usb_audio_top #(
     // USB reset output
     output wire        usb_rstn,      // 1: connected , 0: disconnected (when USB cable unplug, or when system reset (rstn=0))
     // user data : audio output (host-to-device, such as a speaker), and audio input (device-to-host, such as a microphone).
-    output reg         audio_en,      // a 48kHz pulse, that is, audio_en=1 for 1 cycle every 1250 cycle. Note that 60MHz/48kHz=1250, where 60MHz is clk frequency.
+    output reg         audio_en,      // a 48kHz pulse, that is, audio_en=1 for 1 cycle every 1250 cycles. Note that 60MHz/48kHz=1250, where 60MHz is clk frequency.
     output reg  [15:0] audio_lo,      // left-channel  output: 16-bit signed integer, which will be valid when audio_en=1
     output reg  [15:0] audio_ro,      // right-channel output: 16-bit signed integer, which will be valid when audio_en=1
     input  wire [15:0] audio_li,      // left-channel  input : 16-bit signed integer, which will be sampled when audio_en=1
