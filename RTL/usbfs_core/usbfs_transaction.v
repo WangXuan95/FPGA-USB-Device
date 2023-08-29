@@ -75,14 +75,18 @@ module usbfs_transaction #(
     // endpoint 0x01 data output
     output reg  [ 7:0] ep01_data,
     output reg         ep01_valid,
+    input  wire        ep01_ready,
     // endpoint 0x02 data output
     output reg  [ 7:0] ep02_data,
     output reg         ep02_valid,
+    input  wire        ep02_ready,
     // endpoint 0x03 data output
     output reg  [ 7:0] ep03_data,
     output reg         ep03_valid,
+    input  wire        ep03_ready,
     // endpoint 0x04 data output
     output reg  [ 7:0] ep04_data,
+    input  wire        ep04_ready,
     output reg         ep04_valid
 );
 
@@ -144,7 +148,10 @@ assign ep8x_data[2] = ep82_data;
 assign ep8x_data[3] = ep83_data;
 assign ep8x_data[4] = ep84_data;
 
-
+reg ep01_ready_r;
+reg ep02_ready_r;
+reg ep03_ready_r;
+reg ep04_ready_r;
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 // main
@@ -165,7 +172,10 @@ always @ (posedge clk or negedge rstn)
         ep82_data1 <= 1'b0;
         ep83_data1 <= 1'b0;
         ep84_data1 <= 1'b0;
-        
+        ep01_ready_r <= 1'b0;
+        ep02_ready_r <= 1'b0;
+        ep03_ready_r <= 1'b0;
+        ep04_ready_r <= 1'b0;
         ep00_resp_idx <= 9'h0;
     end else begin
         tp_sta <= 1'b0;
@@ -236,13 +246,35 @@ always @ (posedge clk or negedge rstn)
                         ep00_resp_idx <= 9'h0;                                                       //
                     end
                 end                                                                                  //
-                tp_sta <= 1'b1;                                                                      //       send ACK by default
+                tp_sta <= 1'b1;
+                                                                                                    //       send ACK by default
                 tp_pid <= PID_ACK;                                                                   //       send ACK by default
                 if ( (endp == 4'd1 && EP01_ISOCHRONOUS) ||                                           //
                     (endp == 4'd2 && EP02_ISOCHRONOUS) ||                                            //
                     (endp == 4'd3 && EP03_ISOCHRONOUS) ||                                            //
                     (endp == 4'd4 && EP04_ISOCHRONOUS)   )                                           //     if this recv data packet corresponds to a ISOCHRONOUS OUT endpoint.
                     tp_sta <= 1'b0;                                                                  //       do not send ACK.
+                if(endp==4'h1)begin
+                    ep01_ready_r <= ep01_ready;
+                    if(!ep01_ready)
+                        tp_pid <= PID_NAK;          
+                end
+                if(endp==4'h2)begin
+                    ep02_ready_r <= ep02_ready;
+                    if(!ep02_ready)
+                        tp_pid <= PID_NAK;          
+                end
+                if(endp==4'h3)begin
+                    ep03_ready_r <= ep03_ready;
+                    if(!ep03_ready)
+                        tp_pid <= PID_NAK;          
+
+                end
+                if(endp==4'h4)begin
+                    ep04_ready_r <= ep04_ready;
+                    if(!ep04_ready)
+                        tp_pid <= PID_NAK;          
+                end
             end                                                                                      //
         end                                                                                          //
         if (tp_byte_req) begin
@@ -294,6 +326,7 @@ always @ (posedge clk)
 //-------------------------------------------------------------------------------------------------------------------------------------
 // process OUT data
 //-------------------------------------------------------------------------------------------------------------------------------------
+
 always @ (posedge clk or negedge rstn)
     if (~rstn) begin
         ep00_setup_cmd <= 64'h0;
@@ -305,6 +338,7 @@ always @ (posedge clk or negedge rstn)
         ep03_valid <= 1'b0;
         ep04_data  <= 8'h0;
         ep04_valid <= 1'b0;
+
     end else begin
         ep01_data  <= 8'h0;
         ep01_valid <= 1'b0;
@@ -320,21 +354,19 @@ always @ (posedge clk or negedge rstn)
                     ep00_setup_cmd <= {rp_byte, ep00_setup_cmd[63:8]};     // save 8 bytes SETUP command
             end else if (endp == 4'd1) begin                               // endpoint 01 OUT
                 ep01_data  <= rp_byte;
-                ep01_valid <= 1'b1;
+                ep01_valid <= ep01_ready_r;
             end else if (endp == 4'd2) begin                               // endpoint 02 OUT
                 ep02_data  <= rp_byte;
-                ep02_valid <= 1'b1;
+                ep02_valid <= ep02_ready_r;
             end else if (endp == 4'd3) begin                               // endpoint 03 OUT
                 ep03_data  <= rp_byte;
-                ep03_valid <= 1'b1;
+                ep03_valid <= ep03_ready_r;
             end else if (endp == 4'd4) begin                               // endpoint 04 OUT
                 ep04_data  <= rp_byte;
-                ep04_valid <= 1'b1;
+                ep04_valid <= ep04_ready_r;
             end
         end
     end
-
-
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 // detect the IN/OUT packet border and the SOF

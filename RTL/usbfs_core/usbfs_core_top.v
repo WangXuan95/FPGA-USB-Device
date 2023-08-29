@@ -64,15 +64,19 @@ module usbfs_core_top #(
     // endpoint 0x01 data output (host-to-device)
     output wire [ 7:0] ep01_data,     // OUT data byte
     output wire        ep01_valid,    // when out_valid=1 pulses, a data byte is received on out_data
+    input  wire        ep01_ready, 
     // endpoint 0x02 data output (host-to-device)
     output wire [ 7:0] ep02_data,     // OUT data byte
     output wire        ep02_valid,    // when out_valid=1 pulses, a data byte is received on out_data
+    input  wire        ep02_ready, 
     // endpoint 0x03 data output (host-to-device)
     output wire [ 7:0] ep03_data,     // OUT data byte
     output wire        ep03_valid,    // when out_valid=1 pulses, a data byte is received on out_data
+    input  wire        ep03_ready, 
     // endpoint 0x04 data output (host-to-device)
     output wire [ 7:0] ep04_data,     // OUT data byte
     output wire        ep04_valid,    // when out_valid=1 pulses, a data byte is received on out_data
+    input  wire        ep04_ready, 
     // debug output info, only for USB developers, can be ignored for normally use
     output wire        debug_en,      // when debug_en=1 pulses, a byte of debug info appears on debug_data
     output wire [ 7:0] debug_data,    // 
@@ -289,11 +293,15 @@ usbfs_transaction #(
     .ep84_ready         ( ep84_ready         ),
     .ep01_data          ( ep01_data          ),
     .ep01_valid         ( ep01_valid         ),
+    .ep01_ready         ( ep01_ready         ),
     .ep02_data          ( ep02_data          ),
     .ep02_valid         ( ep02_valid         ),
+    .ep02_ready         ( ep02_ready         ),
     .ep03_data          ( ep03_data          ),
     .ep03_valid         ( ep03_valid         ),
+    .ep03_ready         ( ep03_ready         ),
     .ep04_data          ( ep04_data          ),
+    .ep04_ready         ( ep04_ready         ),
     .ep04_valid         ( ep04_valid         )
 );
 
