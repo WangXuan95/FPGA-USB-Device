@@ -102,6 +102,10 @@ module usb_serial_top #(
                 3640'h0
             } ),
         .EP81_MAXPKTSIZE    ( 10'h20           ),   // Here, I make the maximum packet length actually sent by the in endpoint (0x20) be less than the maximum packet length specified by the endpoint descriptor (0x40), not equal to it. Because the test shows that when the actual sent packet length = the maximum packet length specified by the descriptor, the host will not submit the received data to the software immediately (unknown reason).
+                                                   // Note(by hj):     
+                                                   // 如果 传输包的长度小于端点描述符里的长度，就会被认为一次事务提前终止
+            //如果长度等于端点描述符里的长度，控制器会继续等待下一个数据包。
+           //为了让APP尽快收到包，可以设置一个超时计数器，超时后，发送一个0长度的数据包。
         .DEBUG              ( DEBUG            )
     ) u_usbfs_core (
         .rstn               ( rstn             ),
