@@ -8,11 +8,13 @@
 <span id="en">FPGA USB-device</span>
 ===========================
 
-To realize USB devices on FPGA, the usual solution are USB chips (such as CY7C68013), which leads to high circuit cost. This repo is an FPGA-based USB Full-Speed device core, which only require a simple circuit (just like STM32 microcontrollers) instead of additional USB chips.
+## What and Why?
+
+The usual solution to realize custom USB devices on FPGA is to use USB chips (such as CY7C68013), which leads to high circuit cost. This repo is an FPGA-based USB Full-Speed device core, which only require a simple circuit (just like STM32 microcontrollers) instead of additional USB chips.
 
 Based on this, I further implement USB audio, USB camera, USB disk, USB keyboard and USB-Serial devices on FPGA. They are all standard devices specified by USB, which can be plug and play without installing drivers.
 
-Features:
+## Features
 
 - Pure Verilog implementation for universal FPGAs such as Xilinx, Altera, etc.
 - The circuit is simple, **only need three FPGA pins, one resistor and one USB connector** (see [Circuit connection](#circuit_en)).
